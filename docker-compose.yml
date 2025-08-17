@@ -1,0 +1,97 @@
+version: '3.8'
+
+services:
+  # Development environment
+  neural-flow-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: neural-flow-dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://localhost:8000
+      - VITE_WS_URL=ws://localhost:8000
+    networks:
+      - neural-network
+    restart: unless-stopped
+
+  # Production environment
+  neural-flow-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: neural-flow-prod
+    ports:
+      - "80:80"
+    environment:
+      - NODE_ENV=production
+    networks:
+      - neural-network
+    restart: unless-stopped
+    profiles:
+      - production
+
+  # Redis for caching and sessions
+  redis:
+    image: redis:7-alpine
+    container_name: neural-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-neuralflow123}
+    networks:
+      - neural-network
+    restart: unless-stopped
+
+  # PostgreSQL database
+  postgres:
+    image: postgres:15-alpine
+    container_name: neural-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-neuralflow}
+      - POSTGRES_USER=${POSTGRES_USER:-neural}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-neuralflow123}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    networks:
+      - neural-network
+    restart: unless-stopped
+
+  # Vector database (Weaviate)
+  weaviate:
+    image: semitechnologies/weaviate:1.22.4
+    container_name: neural-weaviate
+    ports:
+      - "8080:8080"
+    environment:
+      - QUERY_DEFAULTS_LIMIT=25
+      - AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED=true
+      - PERSISTENCE_DATA_PATH=/var/lib/weaviate
+      - DEFAULT_VECTORIZER_MODULE=none
+      - ENABLE_MODULES=text2vec-openai,text2vec-cohere,text2vec-huggingface
+      - CLUSTER_HOSTNAME=node1
+    volumes:
+      - weaviate_data:/var/lib/weaviate
+    networks:
+      - neural-network
+    restart: unless-stopped
+
+networks:
+  neural-network:
+    driver: bridge
+
+volumes:
+  redis_data:
+  postgres_data:
+  weaviate_data:
