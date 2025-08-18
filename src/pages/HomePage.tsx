@@ -49,6 +49,12 @@ export default function HomePage() {
             >
               Content AI Demo
             </Link>
+            <Link
+              to="/interaction-demo"
+              className="neural-button-secondary text-lg px-8 py-3"
+            >
+              Multi-Modal Interface
+            </Link>
           </div>
 
           <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
