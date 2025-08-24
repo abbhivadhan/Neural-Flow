@@ -7,3 +7,4 @@ export { TaskColumn } from './TaskColumn';
 export { TaskCard } from './TaskCard';
 export { ProjectGrid } from './ProjectGrid';
 export { ProjectCard } from './ProjectCard';
+export { Workspace3D } from './Workspace3D';

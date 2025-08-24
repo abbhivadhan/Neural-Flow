@@ -294,7 +294,7 @@ export class PredictiveTaskIntelligence {
     for (const prediction of predictions) {
       const resourceRequirements = await this.resourcePreparationSystem.analyzeResourceRequirements(
         prediction,
-        context
+        _context
       );
 
       enhanced.push({
@@ -311,7 +311,7 @@ export class PredictiveTaskIntelligence {
   private async assessEventImpact(
     event: ExternalEvent,
     currentTasks: Task[],
-    context: WorkContext
+    _context: WorkContext
   ): Promise<EventImpact> {
     // Analyze how the external event affects current tasks
     let severity = 0;
@@ -350,7 +350,7 @@ export class PredictiveTaskIntelligence {
 
   private async generateTimeBlockingSuggestions(
     tasks: Task[],
-    deadlines: Deadline[],
+    _deadlines: Deadline[],
     context: WorkContext
   ): Promise<TimeBlock[]> {
     const timeBlocks: TimeBlock[] = [];

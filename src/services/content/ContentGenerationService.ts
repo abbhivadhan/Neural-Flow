@@ -2,7 +2,7 @@
  * AI-powered content generation service using Transformers.js
  */
 
-import { pipeline, Pipeline } from '@xenova/transformers';
+import { pipeline } from '@xenova/transformers';
 import {
   ContentGenerationRequest,
   ContentGenerationResponse,

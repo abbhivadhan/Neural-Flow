@@ -1,7 +1,7 @@
 import { 
   InputMode, 
   InteractionContext, 
-  EnvironmentalFactors, 
+  // EnvironmentalFactors, 
   AccessibilityRequirement,
   NoiseLevel,
   LightingCondition,
@@ -123,19 +123,19 @@ export class InputMethodManager {
 
       // Accessibility Requirements
       {
-        condition: (ctx) => this.preferences.accessibilityRequirements.includes(AccessibilityRequirement.VOICE_ONLY),
+        condition: (_ctx) => this.preferences.accessibilityRequirements.includes(AccessibilityRequirement.VOICE_ONLY),
         recommendedModes: [InputMode.VOICE],
         priority: 15,
         reason: 'Voice-only accessibility requirement'
       },
       {
-        condition: (ctx) => this.preferences.accessibilityRequirements.includes(AccessibilityRequirement.GESTURE_ONLY),
+        condition: (_ctx) => this.preferences.accessibilityRequirements.includes(AccessibilityRequirement.GESTURE_ONLY),
         recommendedModes: [InputMode.GESTURE],
         priority: 15,
         reason: 'Gesture-only accessibility requirement'
       },
       {
-        condition: (ctx) => this.preferences.accessibilityRequirements.includes(AccessibilityRequirement.KEYBOARD_ONLY),
+        condition: (_ctx) => this.preferences.accessibilityRequirements.includes(AccessibilityRequirement.KEYBOARD_ONLY),
         recommendedModes: [InputMode.KEYBOARD],
         priority: 15,
         reason: 'Keyboard-only accessibility requirement'
@@ -160,7 +160,7 @@ export class InputMethodManager {
     }
 
     // Gesture support (requires camera)
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    if (navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === 'function') {
       this.availableModes.push(InputMode.GESTURE);
     }
 
@@ -242,42 +242,47 @@ export class InputMethodManager {
         [InputMode.MOUSE]: 0.85,
         [InputMode.VOICE]: 0.6,
         [InputMode.GESTURE]: 0.5,
-        [InputMode.TOUCH]: 0.7
+        [InputMode.TOUCH]: 0.7,
+        [InputMode.EYE_TRACKING]: 0.4
       },
       [WorkMode.CREATIVE]: {
         [InputMode.GESTURE]: 0.9,
         [InputMode.VOICE]: 0.85,
         [InputMode.TOUCH]: 0.8,
         [InputMode.KEYBOARD]: 0.7,
-        [InputMode.MOUSE]: 0.6
+        [InputMode.MOUSE]: 0.6,
+        [InputMode.EYE_TRACKING]: 0.5
       },
       [WorkMode.COLLABORATION]: {
         [InputMode.VOICE]: 0.9,
         [InputMode.GESTURE]: 0.85,
         [InputMode.TOUCH]: 0.75,
         [InputMode.KEYBOARD]: 0.6,
-        [InputMode.MOUSE]: 0.5
+        [InputMode.MOUSE]: 0.5,
+        [InputMode.EYE_TRACKING]: 0.3
       },
       [WorkMode.RESEARCH]: {
         [InputMode.KEYBOARD]: 0.85,
         [InputMode.MOUSE]: 0.9,
         [InputMode.VOICE]: 0.7,
         [InputMode.TOUCH]: 0.6,
-        [InputMode.GESTURE]: 0.5
+        [InputMode.GESTURE]: 0.5,
+        [InputMode.EYE_TRACKING]: 0.6
       },
       [WorkMode.ADMINISTRATIVE]: {
         [InputMode.KEYBOARD]: 0.9,
         [InputMode.MOUSE]: 0.85,
         [InputMode.VOICE]: 0.75,
         [InputMode.TOUCH]: 0.6,
-        [InputMode.GESTURE]: 0.4
+        [InputMode.GESTURE]: 0.4,
+        [InputMode.EYE_TRACKING]: 0.3
       }
     };
 
     return efficiencyMatrix[workMode]?.[mode] || 0.5;
   }
 
-  private calculateAccessibility(mode: InputMode, context: InteractionContext): number {
+  private calculateAccessibility(mode: InputMode, _context: InteractionContext): number {
     const requirements = this.preferences.accessibilityRequirements;
     
     if (requirements.includes(AccessibilityRequirement.VOICE_ONLY)) {
@@ -326,12 +331,14 @@ export class InputMethodManager {
 
     if (applicableRules.length > 0) {
       const topRule = applicableRules[0];
-      const availableFromRule = topRule.recommendedModes.filter(mode => 
-        capabilities.find(cap => cap.mode === mode && cap.isAvailable)
-      );
-      
-      if (availableFromRule.length > 0) {
-        return availableFromRule[0];
+      if (topRule) {
+        const availableFromRule = topRule.recommendedModes.filter(mode => 
+          capabilities.find(cap => cap.mode === mode && cap.isAvailable)
+        );
+        
+        if (availableFromRule.length > 0) {
+          return availableFromRule[0];
+        }
       }
     }
 
@@ -349,14 +356,14 @@ export class InputMethodManager {
       this.preferences.preferredModes.includes(sm.mode)
     );
 
-    if (preferredAvailable.length > 0) {
+    if (preferredAvailable.length > 0 && preferredAvailable[0]) {
       return preferredAvailable[0].mode;
     }
 
-    return scoredModes.length > 0 ? scoredModes[0].mode : InputMode.KEYBOARD;
+    return scoredModes.length > 0 && scoredModes[0] ? scoredModes[0].mode : InputMode.KEYBOARD;
   }
 
-  private calculateOverallScore(capability: InputMethodCapability, context: InteractionContext): number {
+  private calculateOverallScore(capability: InputMethodCapability, _context: InteractionContext): number {
     const weights = {
       reliability: 0.3,
       efficiency: 0.25,
@@ -377,7 +384,7 @@ export class InputMethodManager {
       .filter(rule => rule.condition(context) && rule.recommendedModes.includes(selectedMode))
       .sort((a, b) => b.priority - a.priority);
 
-    if (applicableRules.length > 0) {
+    if (applicableRules.length > 0 && applicableRules[0]) {
       return applicableRules[0].reason;
     }
 
@@ -397,7 +404,7 @@ export class InputMethodManager {
     console.log(`Input method switched from ${previousMode} to ${mode}: ${reason}`);
   }
 
-  private recordAdaptation(mode: InputMode, reason: string): void {
+  private recordAdaptation(mode: InputMode, _reason: string): void {
     // This would be enhanced with actual effectiveness measurement
     this.adaptationHistory.push({
       context: {} as InteractionContext, // Would store actual context

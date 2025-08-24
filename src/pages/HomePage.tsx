@@ -44,6 +44,12 @@ export default function HomePage() {
               Enter Neural Flow
             </Link>
             <Link
+              to="/workspace-3d"
+              className="neural-button-primary text-lg px-8 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+            >
+              🌌 3D Workspace
+            </Link>
+            <Link
               to="/content-demo"
               className="neural-button-secondary text-lg px-8 py-3"
             >
@@ -54,6 +60,18 @@ export default function HomePage() {
               className="neural-button-secondary text-lg px-8 py-3"
             >
               Multi-Modal Interface
+            </Link>
+            <Link
+              to="/collaboration"
+              className="neural-button-secondary text-lg px-8 py-3"
+            >
+              🤝 Real-Time Collaboration
+            </Link>
+            <Link
+              to="/search"
+              className="neural-button-secondary text-lg px-8 py-3"
+            >
+              🔍 Intelligent Search
             </Link>
           </div>
 

@@ -1,6 +1,7 @@
 // Behavioral pattern tracking system for Neural Flow
 import { storage, StorageKeys } from '../../utils/storage';
 import { BehaviorPattern, TaskSequence, TimePattern, ToolUsagePattern, ProductivityMetric } from '../../types/user';
+import { TimeRange, Duration } from '../../types/common';
 import { BehaviorPatternSchema } from '../../schemas/user';
 
 export interface UserInteraction {
@@ -122,8 +123,8 @@ class BehaviorTracker {
         existing.frequency++;
         const lastTimestamp = window[window.length - 1]?.timestamp;
         if (lastTimestamp) {
-          const existingTime = existing.lastOccurred instanceof Date ? existing.lastOccurred.getTime() : Date.parse(existing.lastOccurred.toString());
-          const newTime = lastTimestamp instanceof Date ? lastTimestamp.getTime() : Date.parse(lastTimestamp.toString());
+          const existingTime = existing.lastOccurred instanceof Date ? existing.lastOccurred.getTime() : existing.lastOccurred;
+          const newTime = typeof lastTimestamp === 'number' ? lastTimestamp : Date.parse(String(lastTimestamp));
           existing.lastOccurred = new Date(Math.max(existingTime, newTime));
         }
       } else {
@@ -189,7 +190,7 @@ class BehaviorTracker {
         patterns.set(toolId, {
           toolId,
           usageFrequency: 1,
-          averageSessionDuration: `${this.calculateAverageSessionDuration(toolId)}h`,
+          averageSessionDuration: (this.calculateAverageSessionDuration(toolId) * 3600000) as Duration, // Convert hours to milliseconds
           preferredTimeSlots: this.getPreferredTimeSlots(toolId),
           efficiency: this.calculateToolEfficiency(toolId)
         });
@@ -209,7 +210,7 @@ class BehaviorTracker {
     return {
       date: new Date(now),
       tasksCompleted: this.currentSession.interactions.filter(i => i.type === 'task_complete').length,
-      focusTime: `${this.currentSession.focusTime}h`,
+      focusTime: (this.currentSession.focusTime * 3600000) as Duration, // Convert hours to milliseconds
       distractionCount: this.currentSession.distractionCount,
       energyLevel: this.estimateEnergyLevel(),
       satisfaction: this.estimateSatisfaction()
@@ -500,7 +501,7 @@ class BehaviorTracker {
     return sessionCount > 0 ? totalDuration / sessionCount : 0;
   }
 
-  private getPreferredTimeSlots(toolId: string): Array<{ start: number; end: number }> {
+  private getPreferredTimeSlots(toolId: string): TimeRange[] {
     const toolInteractions = this.interactions.filter(i => i.target === toolId);
     const hourCounts: { [hour: number]: number } = {};
 
@@ -514,7 +515,10 @@ class BehaviorTracker {
       .slice(0, 3)
       .map(([hour]) => parseInt(hour));
 
-    return sortedHours.map(hour => ({ start: hour, end: hour + 1 }));
+    return sortedHours.map(hour => ({
+      start: new Date(Date.now() - (Date.now() % (24 * 60 * 60 * 1000)) + hour * 60 * 60 * 1000),
+      end: new Date(Date.now() - (Date.now() % (24 * 60 * 60 * 1000)) + (hour + 1) * 60 * 60 * 1000)
+    }));
   }
 
   private calculateToolEfficiency(toolId: string): number {

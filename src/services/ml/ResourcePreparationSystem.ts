@@ -103,7 +103,7 @@ export class ResourcePreparationSystem {
    */
   async prepareForEvent(
     event: CalendarEvent,
-    context: WorkContext
+    _context: WorkContext
   ): Promise<EventPreparation> {
     const startTime = Date.now();
     const preparation: EventPreparation = {
@@ -143,7 +143,7 @@ export class ResourcePreparationSystem {
    * Update resource usage data based on completed tasks
    */
   async updateResourceUsageData(
-    completedTask: any,
+    _completedTask: any,
     resourcesUsed: string[]
   ): Promise<void> {
     // Update usage statistics
@@ -242,7 +242,7 @@ export class ResourcePreparationSystem {
       this.preparationQueue.push(preparationTask);
     } else {
       // Update existing task with higher confidence if applicable
-      if (confidence > this.preparationQueue[existingIndex].confidence) {
+      if (confidence > (this.preparationQueue[existingIndex]?.confidence ?? 0)) {
         this.preparationQueue[existingIndex] = preparationTask;
       }
     }
@@ -376,8 +376,8 @@ export class ResourcePreparationSystem {
   }
 
   private getCodingResourceRequirements(
-    prediction: TaskPrediction,
-    context: WorkContext
+    _prediction: TaskPrediction,
+    _context: WorkContext
   ): ResourceRequirement[] {
     return [
       {
@@ -405,8 +405,8 @@ export class ResourcePreparationSystem {
   }
 
   private getMeetingResourceRequirements(
-    prediction: TaskPrediction,
-    context: WorkContext
+    _prediction: TaskPrediction,
+    _context: WorkContext
   ): ResourceRequirement[] {
     return [
       {
@@ -434,8 +434,8 @@ export class ResourcePreparationSystem {
   }
 
   private getWritingResourceRequirements(
-    prediction: TaskPrediction,
-    context: WorkContext
+    _prediction: TaskPrediction,
+    _context: WorkContext
   ): ResourceRequirement[] {
     return [
       {
@@ -463,8 +463,8 @@ export class ResourcePreparationSystem {
   }
 
   private getResearchResourceRequirements(
-    prediction: TaskPrediction,
-    context: WorkContext
+    _prediction: TaskPrediction,
+    _context: WorkContext
   ): ResourceRequirement[] {
     return [
       {
@@ -492,8 +492,8 @@ export class ResourcePreparationSystem {
   }
 
   private getGenericResourceRequirements(
-    prediction: TaskPrediction,
-    context: WorkContext
+    _prediction: TaskPrediction,
+    _context: WorkContext
   ): ResourceRequirement[] {
     return [
       {
@@ -530,7 +530,7 @@ export class ResourcePreparationSystem {
   }
 
   private async prepareMeetingResources(
-    event: CalendarEvent,
+    _event: CalendarEvent,
     preparation: EventPreparation
   ): Promise<void> {
     // Simulate preparing meeting-specific resources
@@ -596,7 +596,7 @@ export class ResourcePreparationSystem {
     }
   }
 
-  private updateMetrics(operation: string, duration: number, success: boolean): void {
+  private updateMetrics(_operation: string, duration: number, success: boolean): void {
     this.metrics.totalPreparations++;
     
     if (success) {

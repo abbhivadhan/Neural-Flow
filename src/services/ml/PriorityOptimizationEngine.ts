@@ -55,13 +55,13 @@ export class PriorityOptimizationEngine {
       const optimizedPriority = await this.calculateOptimizedPriority(
         prediction,
         calendarInsights,
-        context
+        _context
       );
 
       optimizedPredictions.push({
         ...prediction,
         priority: optimizedPriority,
-        reasoning: this.enhanceReasoning(prediction.reasoning, optimizedPriority, context)
+        reasoning: this.enhanceReasoning(prediction.reasoning, optimizedPriority, _context)
       });
     }
 
@@ -111,7 +111,7 @@ export class PriorityOptimizationEngine {
   async reorganizeForDeadlines(
     tasks: Task[],
     deadlines: Deadline[],
-    context: WorkContext
+    _context: WorkContext
   ): Promise<Task[]> {
     const reorganizedTasks: Task[] = [];
     const deadlineMap = new Map<string, Deadline>();
@@ -294,7 +294,7 @@ export class PriorityOptimizationEngine {
     task: Task,
     event: ExternalEvent,
     impact: EventImpact,
-    context: WorkContext
+    _context: WorkContext
   ): Promise<number> {
     let adjustedPriority = task.priority;
     
@@ -443,7 +443,7 @@ export class PriorityOptimizationEngine {
     this.optimizationRules = [
       {
         name: 'High Confidence Boost',
-        condition: (prediction, context) => prediction.confidence > 0.8,
+        condition: (prediction, _context) => prediction.confidence > 0.8,
         adjustment: 0.2
       },
       {
@@ -460,7 +460,7 @@ export class PriorityOptimizationEngine {
       },
       {
         name: 'High Urgency Context',
-        condition: (prediction, context) => context.urgency === 'high',
+        condition: (_prediction, context) => context.urgency === 'high',
         adjustment: 0.5
       }
     ];
@@ -525,7 +525,10 @@ class PriorityModel {
     
     // Adjust weight based on priority level
     if (historyEntry.originalPriority >= 1 && historyEntry.originalPriority <= 5) {
-      this.weights[historyEntry.originalPriority - 1] += adjustment;
+      const weightIndex = historyEntry.originalPriority - 1;
+      if (this.weights[weightIndex] !== undefined) {
+        this.weights[weightIndex] = (this.weights[weightIndex] || 0) + adjustment;
+      }
     }
     
     // Persist updated weights

@@ -5,49 +5,34 @@ interface CardProps {
   className?: string;
 }
 
-interface CardHeaderProps {
-  children: React.ReactNode;
-  className?: string;
-}
-
-interface CardTitleProps {
-  children: React.ReactNode;
-  className?: string;
-}
-
-interface CardContentProps {
-  children: React.ReactNode;
-  className?: string;
-}
-
-export function Card({ children, className = '' }: CardProps) {
+export const Card: React.FC<CardProps> = ({ children, className = '' }) => {
   return (
-    <div className={`bg-white rounded-lg border border-gray-200 shadow-sm ${className}`}>
+    <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 ${className}`}>
       {children}
     </div>
   );
-}
+};
 
-export function CardHeader({ children, className = '' }: CardHeaderProps) {
+export const CardHeader: React.FC<CardProps> = ({ children, className = '' }) => {
   return (
-    <div className={`px-6 py-4 border-b border-gray-200 ${className}`}>
+    <div className={`px-6 py-4 border-b border-gray-200 dark:border-gray-700 ${className}`}>
       {children}
     </div>
   );
-}
+};
 
-export function CardTitle({ children, className = '' }: CardTitleProps) {
+export const CardTitle: React.FC<CardProps> = ({ children, className = '' }) => {
   return (
-    <h3 className={`text-lg font-semibold text-gray-900 ${className}`}>
+    <h3 className={`text-lg font-semibold text-gray-900 dark:text-gray-100 ${className}`}>
       {children}
     </h3>
   );
-}
+};
 
-export function CardContent({ children, className = '' }: CardContentProps) {
+export const CardContent: React.FC<CardProps> = ({ children, className = '' }) => {
   return (
     <div className={`px-6 py-4 ${className}`}>
       {children}
     </div>
   );
-}
+};

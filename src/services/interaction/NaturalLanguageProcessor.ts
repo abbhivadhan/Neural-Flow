@@ -1,12 +1,7 @@
 import { pipeline, Pipeline } from '@xenova/transformers';
 import { CommandIntent, VoiceCommand, InteractionContext } from '../../types/interaction';
 
-interface NLPCommand {
-  intent: string;
-  entities: NLPEntity[];
-  confidence: number;
-  parameters: Record<string, any>;
-}
+// Removed unused NLPCommand interface
 
 interface NLPEntity {
   type: string;
@@ -48,7 +43,7 @@ export class NaturalLanguageProcessor {
         'text-classification',
         'Xenova/distilbert-base-uncased-finetuned-sst-2-english',
         { revision: 'main' }
-      );
+      ) as any;
       this.isInitialized = true;
     } catch (error) {
       console.warn('Failed to initialize NLP pipeline, falling back to pattern matching:', error);
@@ -283,7 +278,7 @@ export class NaturalLanguageProcessor {
 
         return {
           action: pattern.intent,
-          entity: entities.task_name || entities.item_name || entities.query || entities.topic,
+          entity: entities['task_name'] || entities['item_name'] || entities['query'] || entities['topic'],
           parameters: {
             ...entities,
             originalText: text,
@@ -413,7 +408,7 @@ export class NaturalLanguageProcessor {
     this.contextHistory = [];
   }
 
-  public isInitialized(): boolean {
+  public isReady(): boolean {
     return this.isInitialized;
   }
 

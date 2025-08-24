@@ -164,7 +164,7 @@ class VectorDatabase {
 
     const results: SimilaritySearchResult[] = [];
     
-    for (const embedding of this.embeddings.values()) {
+    for (const embedding of Array.from(this.embeddings.values())) {
       // Filter by document IDs if specified
       if (documentIds && !documentIds.includes(embedding.documentId)) {
         continue;

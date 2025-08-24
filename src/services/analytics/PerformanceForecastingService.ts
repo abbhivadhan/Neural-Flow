@@ -53,7 +53,7 @@ export class PerformanceForecastingService {
   private readonly CONFIDENCE_LEVEL = 0.95;
 
   /**
-   * Generate comprehensive performance forecasts
+   * Generate comprehensive performance forecasts with advanced algorithms
    */
   async generatePerformanceForecast(
     userId: string,
@@ -74,13 +74,163 @@ export class PerformanceForecastingService {
       'collaborationIndex'
     ];
 
-    for (const metric of metricsToForecast) {
+    // Parallel processing for better performance
+    const forecastPromises = metricsToForecast.map(async (metric) => {
       const timeSeries = this.extractTimeSeries(historicalMetrics, metric);
-      const forecast = await this.forecastMetric(metric, timeSeries, forecastHorizon);
-      forecasts.push(forecast);
-    }
+      
+      // Apply data preprocessing
+      const preprocessedSeries = this.preprocessTimeSeries(timeSeries);
+      
+      // Detect and handle outliers
+      const cleanedSeries = this.detectAndHandleOutliers(preprocessedSeries);
+      
+      return await this.forecastMetric(metric, cleanedSeries, forecastHorizon);
+    });
+
+    const results = await Promise.all(forecastPromises);
+    forecasts.push(...results);
+
+    // Cross-validate forecasts for consistency
+    this.validateForecastConsistency(forecasts);
 
     return forecasts;
+  }
+
+  /**
+   * Preprocess time series data for better forecasting accuracy
+   */
+  private preprocessTimeSeries(
+    timeSeries: { timestamp: string; value: number }[]
+  ): { timestamp: string; value: number }[] {
+    // Apply smoothing to reduce noise
+    const smoothed = this.applyExponentialSmoothing(timeSeries, 0.3);
+    
+    // Handle missing values
+    const filled = this.fillMissingValues(smoothed);
+    
+    // Normalize if needed
+    return this.normalizeIfNeeded(filled);
+  }
+
+  /**
+   * Apply exponential smoothing to reduce noise
+   */
+  private applyExponentialSmoothing(
+    timeSeries: { timestamp: string; value: number }[],
+    alpha: number = 0.3
+  ): { timestamp: string; value: number }[] {
+    if (timeSeries.length === 0) return timeSeries;
+    
+    const smoothed = [...timeSeries];
+    let smoothedValue = timeSeries[0].value;
+    
+    for (let i = 1; i < timeSeries.length; i++) {
+      smoothedValue = alpha * timeSeries[i].value + (1 - alpha) * smoothedValue;
+      smoothed[i] = { ...timeSeries[i], value: smoothedValue };
+    }
+    
+    return smoothed;
+  }
+
+  /**
+   * Fill missing values using interpolation
+   */
+  private fillMissingValues(
+    timeSeries: { timestamp: string; value: number }[]
+  ): { timestamp: string; value: number }[] {
+    const filled = [...timeSeries];
+    
+    for (let i = 1; i < filled.length - 1; i++) {
+      if (isNaN(filled[i].value) || filled[i].value === null || filled[i].value === undefined) {
+        // Linear interpolation
+        const prevValue = filled[i - 1].value;
+        const nextValue = filled[i + 1].value;
+        filled[i].value = (prevValue + nextValue) / 2;
+      }
+    }
+    
+    return filled;
+  }
+
+  /**
+   * Normalize data if variance is too high
+   */
+  private normalizeIfNeeded(
+    timeSeries: { timestamp: string; value: number }[]
+  ): { timestamp: string; value: number }[] {
+    const values = timeSeries.map(d => d.value);
+    const mean = this.mean(values);
+    const std = this.standardDeviation(values);
+    
+    // If coefficient of variation is too high, apply normalization
+    if (std / mean > 0.5) {
+      return timeSeries.map(d => ({
+        ...d,
+        value: (d.value - mean) / std
+      }));
+    }
+    
+    return timeSeries;
+  }
+
+  /**
+   * Detect and handle outliers using IQR method
+   */
+  private detectAndHandleOutliers(
+    timeSeries: { timestamp: string; value: number }[]
+  ): { timestamp: string; value: number }[] {
+    const values = timeSeries.map(d => d.value).sort((a, b) => a - b);
+    const q1 = this.quantile(values, 0.25);
+    const q3 = this.quantile(values, 0.75);
+    const iqr = q3 - q1;
+    const lowerBound = q1 - 1.5 * iqr;
+    const upperBound = q3 + 1.5 * iqr;
+    
+    return timeSeries.map(d => {
+      if (d.value < lowerBound || d.value > upperBound) {
+        // Replace outlier with median
+        const median = this.quantile(values, 0.5);
+        return { ...d, value: median };
+      }
+      return d;
+    });
+  }
+
+  /**
+   * Calculate quantile
+   */
+  private quantile(values: number[], q: number): number {
+    const sorted = [...values].sort((a, b) => a - b);
+    const index = (sorted.length - 1) * q;
+    const lower = Math.floor(index);
+    const upper = Math.ceil(index);
+    const weight = index % 1;
+    
+    if (upper >= sorted.length) return sorted[sorted.length - 1];
+    return sorted[lower] * (1 - weight) + sorted[upper] * weight;
+  }
+
+  /**
+   * Validate forecast consistency across metrics
+   */
+  private validateForecastConsistency(forecasts: PerformanceForecast[]): void {
+    // Check for logical inconsistencies
+    const productivityForecast = forecasts.find(f => f.metric === 'productivityScore');
+    const burnoutForecast = forecasts.find(f => f.metric === 'burnoutRisk');
+    
+    if (productivityForecast && burnoutForecast) {
+      // Productivity and burnout should be inversely correlated
+      const avgProductivity = this.mean(productivityForecast.predictions.map(p => p.value));
+      const avgBurnout = this.mean(burnoutForecast.predictions.map(p => p.value));
+      
+      // If both are high, adjust burnout forecast
+      if (avgProductivity > 0.8 && avgBurnout > 0.7) {
+        burnoutForecast.predictions = burnoutForecast.predictions.map(p => ({
+          ...p,
+          value: Math.max(0.1, p.value * 0.7) // Reduce burnout risk
+        }));
+      }
+    }
   }
 
   /**

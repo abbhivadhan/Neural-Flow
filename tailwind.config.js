@@ -74,7 +74,7 @@ export default {
   plugins: [
     require('@tailwindcss/forms'),
     require('@tailwindcss/typography'),
-    function({ addUtilities }) {
+    function({ addUtilities, addComponents, theme }) {
       const newUtilities = {
         '.line-clamp-1': {
           overflow: 'hidden',
@@ -94,8 +94,89 @@ export default {
           '-webkit-box-orient': 'vertical',
           '-webkit-line-clamp': '3',
         },
+        // Screen reader only utility
+        '.sr-only': {
+          position: 'absolute',
+          width: '1px',
+          height: '1px',
+          padding: '0',
+          margin: '-1px',
+          overflow: 'hidden',
+          clip: 'rect(0, 0, 0, 0)',
+          whiteSpace: 'nowrap',
+          border: '0',
+        },
+        '.not-sr-only': {
+          position: 'static',
+          width: 'auto',
+          height: 'auto',
+          padding: '0',
+          margin: '0',
+          overflow: 'visible',
+          clip: 'auto',
+          whiteSpace: 'normal',
+        },
+        // Focus visible utilities
+        '.focus-visible\\:ring-2:focus-visible': {
+          '--tw-ring-offset-shadow': 'var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color)',
+          '--tw-ring-shadow': 'var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color)',
+          'box-shadow': 'var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000)',
+        },
+        // High contrast mode utilities
+        '@media (prefers-contrast: high)': {
+          '.hc\\:border-2': {
+            'border-width': '2px',
+          },
+          '.hc\\:outline-2': {
+            'outline-width': '2px',
+          },
+        },
+        // Reduced motion utilities
+        '@media (prefers-reduced-motion: reduce)': {
+          '.motion-reduce\\:animate-none': {
+            animation: 'none',
+          },
+          '.motion-reduce\\:transition-none': {
+            'transition-property': 'none',
+          },
+        },
+        // Touch target utilities
+        '.touch-target': {
+          'min-height': '44px',
+          'min-width': '44px',
+        },
+        '.touch-target-lg': {
+          'min-height': '48px',
+          'min-width': '48px',
+        },
       }
+      
+      const newComponents = {
+        '.btn-focus': {
+          '&:focus': {
+            outline: '2px solid transparent',
+            'outline-offset': '2px',
+            '--tw-ring-offset-shadow': 'var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color)',
+            '--tw-ring-shadow': 'var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color)',
+            'box-shadow': 'var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000)',
+            '--tw-ring-color': theme('colors.primary.500'),
+          },
+        },
+        '.input-focus': {
+          '&:focus': {
+            outline: '2px solid transparent',
+            'outline-offset': '2px',
+            '--tw-ring-offset-shadow': 'var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color)',
+            '--tw-ring-shadow': 'var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color)',
+            'box-shadow': 'var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000)',
+            '--tw-ring-color': theme('colors.primary.500'),
+            'border-color': theme('colors.primary.500'),
+          },
+        },
+      }
+      
       addUtilities(newUtilities)
+      addComponents(newComponents)
     }
   ],
 }

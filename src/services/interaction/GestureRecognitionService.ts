@@ -5,9 +5,9 @@ import { HAND_CONNECTIONS } from '@mediapipe/hands';
 import { 
   Gesture, 
   GestureType, 
-  HandLandmark, 
-  GestureCoordinates,
-  InteractionContext 
+  HandLandmark
+  // GestureCoordinates,
+  // InteractionContext 
 } from '../../types/interaction';
 
 export class GestureRecognitionService {
@@ -63,7 +63,7 @@ export class GestureRecognitionService {
       const landmarks = results.multiHandLandmarks[i];
       const handedness = results.multiHandedness[i];
       
-      const gesture = this.recognizeGesture(landmarks, handedness);
+      const gesture = this.recognizeGesture(landmarks || [], handedness);
       if (gesture) {
         this.lastGestureTime = now;
         this.onGestureCallback?.(gesture);
@@ -76,7 +76,7 @@ export class GestureRecognitionService {
     }
   }
 
-  private recognizeGesture(landmarks: any[], handedness: any): Gesture | null {
+  private recognizeGesture(landmarks: any[], _handedness: any): Gesture | null {
     const handLandmarks: HandLandmark[] = landmarks.map(landmark => ({
       x: landmark.x,
       y: landmark.y,
@@ -129,7 +129,7 @@ export class GestureRecognitionService {
 
   private classifyGesture(fingers: any): GestureType | null {
     const { thumb_tip, thumb_ip, index_tip, index_pip, middle_tip, middle_pip, 
-            ring_tip, ring_pip, pinky_tip, pinky_pip, wrist } = fingers;
+            ring_tip, ring_pip, pinky_tip, pinky_pip } = fingers;
 
     // Helper function to check if finger is extended
     const isFingerExtended = (tip: any, pip: any) => tip.y < pip.y;
@@ -290,7 +290,7 @@ export class GestureRecognitionService {
     if (this.hands) {
       this.hands.setOptions({
         maxNumHands: settings.maxNumHands || 2,
-        modelComplexity: settings.modelComplexity || 1,
+        modelComplexity: (settings.modelComplexity === 0 ? 0 : 1) as 0 | 1,
         minDetectionConfidence: settings.minDetectionConfidence || 0.5,
         minTrackingConfidence: settings.minTrackingConfidence || 0.5
       });

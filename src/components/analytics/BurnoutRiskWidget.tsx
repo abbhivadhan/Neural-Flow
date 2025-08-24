@@ -1,4 +1,5 @@
-import React from 'react';
+import { useEffect, useRef } from 'react';
+import * as d3 from 'd3';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
@@ -29,6 +30,247 @@ export default function BurnoutRiskWidget({
   interventions, 
   insights 
 }: BurnoutRiskWidgetProps) {
+  const riskGaugeRef = useRef<HTMLDivElement>(null);
+  const factorsChartRef = useRef<HTMLDivElement>(null);
+
+  // Create risk gauge visualization
+  useEffect(() => {
+    if (!riskGaugeRef.current) return;
+
+    const container = d3.select(riskGaugeRef.current);
+    container.selectAll('*').remove();
+
+    const width = 300;
+    const height = 200;
+    const radius = Math.min(width, height) / 2 - 20;
+
+    const svg = container
+      .append('svg')
+      .attr('width', width)
+      .attr('height', height);
+
+    const g = svg
+      .append('g')
+      .attr('transform', `translate(${width / 2}, ${height / 2})`);
+
+    // Create gauge background
+    const backgroundArc = d3.arc()
+      .innerRadius(radius - 25)
+      .outerRadius(radius)
+      .startAngle(-Math.PI / 2)
+      .endAngle(Math.PI / 2);
+
+    g.append('path')
+      .datum({ startAngle: -Math.PI / 2, endAngle: Math.PI / 2 })
+      .style('fill', '#e5e7eb')
+      .attr('d', backgroundArc as any);
+
+    // Create risk level segments
+    const riskLevels = [
+      { level: 'low', color: '#10b981', start: -Math.PI / 2, end: -Math.PI / 4 },
+      { level: 'medium', color: '#f59e0b', start: -Math.PI / 4, end: 0 },
+      { level: 'high', color: '#ef4444', start: 0, end: Math.PI / 4 },
+      { level: 'critical', color: '#dc2626', start: Math.PI / 4, end: Math.PI / 2 }
+    ];
+
+    riskLevels.forEach(level => {
+      const levelArc = d3.arc()
+        .innerRadius(radius - 25)
+        .outerRadius(radius)
+        .startAngle(level.start)
+        .endAngle(level.end);
+
+      g.append('path')
+        .datum(level)
+        .style('fill', level.color)
+        .style('opacity', 0.3)
+        .attr('d', levelArc as any);
+    });
+
+    // Create needle
+    const needleAngle = -Math.PI / 2 + (prediction.probability * Math.PI);
+    const needleLength = radius - 30;
+
+    g.append('line')
+      .attr('x1', 0)
+      .attr('y1', 0)
+      .attr('x2', needleLength * Math.cos(needleAngle))
+      .attr('y2', needleLength * Math.sin(needleAngle))
+      .attr('stroke', '#1f2937')
+      .attr('stroke-width', 3)
+      .attr('stroke-linecap', 'round');
+
+    g.append('circle')
+      .attr('cx', 0)
+      .attr('cy', 0)
+      .attr('r', 8)
+      .attr('fill', '#1f2937');
+
+    // Add risk score text
+    g.append('text')
+      .attr('text-anchor', 'middle')
+      .attr('dy', '0.35em')
+      .attr('y', 30)
+      .style('font-size', '24px')
+      .style('font-weight', 'bold')
+      .style('fill', '#1f2937')
+      .text(`${(prediction.probability * 100).toFixed(0)}%`);
+
+    g.append('text')
+      .attr('text-anchor', 'middle')
+      .attr('dy', '0.35em')
+      .attr('y', 50)
+      .style('font-size', '12px')
+      .style('fill', '#6b7280')
+      .text('Burnout Risk');
+
+    // Add level labels
+    const labelPositions = [
+      { level: 'Low', angle: -3 * Math.PI / 8, color: '#10b981' },
+      { level: 'Med', angle: -Math.PI / 8, color: '#f59e0b' },
+      { level: 'High', angle: Math.PI / 8, color: '#ef4444' },
+      { level: 'Critical', angle: 3 * Math.PI / 8, color: '#dc2626' }
+    ];
+
+    labelPositions.forEach(pos => {
+      const labelRadius = radius + 15;
+      const x = labelRadius * Math.cos(pos.angle);
+      const y = labelRadius * Math.sin(pos.angle);
+
+      g.append('text')
+        .attr('x', x)
+        .attr('y', y)
+        .attr('text-anchor', 'middle')
+        .attr('dy', '0.35em')
+        .style('font-size', '10px')
+        .style('font-weight', 'bold')
+        .style('fill', pos.color)
+        .text(pos.level);
+    });
+
+  }, [prediction]);
+
+  // Create risk factors radar chart
+  useEffect(() => {
+    if (!factorsChartRef.current || !prediction.primaryFactors) return;
+
+    const container = d3.select(factorsChartRef.current);
+    container.selectAll('*').remove();
+
+    const width = 400;
+    const height = 300;
+    const radius = Math.min(width, height) / 2 - 40;
+
+    const svg = container
+      .append('svg')
+      .attr('width', width)
+      .attr('height', height);
+
+    const g = svg
+      .append('g')
+      .attr('transform', `translate(${width / 2}, ${height / 2})`);
+
+    // Mock risk factor data with scores
+    const riskFactors = [
+      { factor: 'Workload', score: 0.8, angle: 0 },
+      { factor: 'Hours', score: 0.6, angle: Math.PI / 3 },
+      { factor: 'Social', score: 0.4, angle: 2 * Math.PI / 3 },
+      { factor: 'Quality', score: 0.7, angle: Math.PI },
+      { factor: 'Support', score: 0.3, angle: 4 * Math.PI / 3 },
+      { factor: 'Control', score: 0.5, angle: 5 * Math.PI / 3 }
+    ];
+
+    // Create concentric circles for scale
+    const scales = [0.2, 0.4, 0.6, 0.8, 1.0];
+    scales.forEach(scale => {
+      g.append('circle')
+        .attr('cx', 0)
+        .attr('cy', 0)
+        .attr('r', radius * scale)
+        .attr('fill', 'none')
+        .attr('stroke', '#e5e7eb')
+        .attr('stroke-width', 1);
+    });
+
+    // Create axis lines
+    riskFactors.forEach(factor => {
+      g.append('line')
+        .attr('x1', 0)
+        .attr('y1', 0)
+        .attr('x2', radius * Math.cos(factor.angle - Math.PI / 2))
+        .attr('y2', radius * Math.sin(factor.angle - Math.PI / 2))
+        .attr('stroke', '#d1d5db')
+        .attr('stroke-width', 1);
+    });
+
+    // Create data polygon
+    const lineGenerator = d3.line<{ factor: string; score: number; angle: number }>()
+      .x(d => (radius * d.score) * Math.cos(d.angle - Math.PI / 2))
+      .y(d => (radius * d.score) * Math.sin(d.angle - Math.PI / 2))
+      .curve(d3.curveLinearClosed);
+
+    g.append('path')
+      .datum(riskFactors)
+      .attr('d', lineGenerator)
+      .attr('fill', '#ef4444')
+      .attr('fill-opacity', 0.2)
+      .attr('stroke', '#ef4444')
+      .attr('stroke-width', 2);
+
+    // Add data points
+    g.selectAll('.risk-point')
+      .data(riskFactors)
+      .enter()
+      .append('circle')
+      .attr('class', 'risk-point')
+      .attr('cx', d => (radius * d.score) * Math.cos(d.angle - Math.PI / 2))
+      .attr('cy', d => (radius * d.score) * Math.sin(d.angle - Math.PI / 2))
+      .attr('r', 4)
+      .attr('fill', '#ef4444')
+      .attr('stroke', '#dc2626')
+      .attr('stroke-width', 2);
+
+    // Add factor labels
+    riskFactors.forEach(factor => {
+      const labelRadius = radius + 20;
+      const x = labelRadius * Math.cos(factor.angle - Math.PI / 2);
+      const y = labelRadius * Math.sin(factor.angle - Math.PI / 2);
+
+      g.append('text')
+        .attr('x', x)
+        .attr('y', y)
+        .attr('text-anchor', 'middle')
+        .attr('dy', '0.35em')
+        .style('font-size', '11px')
+        .style('font-weight', 'bold')
+        .style('fill', '#374151')
+        .text(factor.factor);
+
+      // Add score labels
+      g.append('text')
+        .attr('x', x)
+        .attr('y', y + 12)
+        .attr('text-anchor', 'middle')
+        .attr('dy', '0.35em')
+        .style('font-size', '9px')
+        .style('fill', '#6b7280')
+        .text(`${(factor.score * 100).toFixed(0)}%`);
+    });
+
+    // Add scale labels
+    scales.forEach(scale => {
+      if (scale > 0) {
+        g.append('text')
+          .attr('x', 5)
+          .attr('y', -radius * scale)
+          .attr('dy', '0.35em')
+          .style('font-size', '9px')
+          .style('fill', '#9ca3af')
+          .text(`${(scale * 100).toFixed(0)}%`);
+      }
+    });
+
+  }, [prediction]);
 
   const getRiskLevelColor = (level: string): string => {
     switch (level) {
@@ -114,21 +356,27 @@ export default function BurnoutRiskWidget({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center space-x-4">
-                {getRiskIcon(prediction.riskLevel)}
-                <div>
-                  <h3 className="text-lg font-semibold">
-                    {prediction.riskLevel.charAt(0).toUpperCase() + prediction.riskLevel.slice(1)} Risk
-                  </h3>
-                  <p className="text-sm text-gray-600">
-                    {(prediction.probability * 100).toFixed(1)}% probability
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Risk Gauge */}
+              <div className="flex flex-col items-center">
+                <div ref={riskGaugeRef}></div>
+                <div className="mt-4 text-center">
+                  <Badge className={getRiskLevelColor(prediction.riskLevel)}>
+                    {prediction.riskLevel.toUpperCase()}
+                  </Badge>
+                  <p className="text-sm text-gray-600 mt-2">
+                    Confidence: {(prediction.confidenceInterval[0] * 100).toFixed(1)}% - {(prediction.confidenceInterval[1] * 100).toFixed(1)}%
                   </p>
                 </div>
               </div>
-              <Badge className={getRiskLevelColor(prediction.riskLevel)}>
-                {prediction.riskLevel.toUpperCase()}
-              </Badge>
+
+              {/* Risk Factors Radar */}
+              <div className="flex flex-col items-center">
+                <div ref={factorsChartRef}></div>
+                <p className="text-sm text-gray-600 text-center mt-2">
+                  Risk Factor Analysis
+                </p>
+              </div>
             </div>
 
             <div className="space-y-4">

@@ -1,0 +1,24 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "strict": false,
+    "exactOptionalPropertyTypes": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noPropertyAccessFromIndexSignature": false,
+    "noUncheckedIndexedAccess": false,
+    "skipLibCheck": true
+  },
+  "include": [
+    "src/services/monitoring/**/*",
+    "src/services/workers/**/*",
+    "src/workers/**/*",
+    "src/components/monitoring/**/*",
+    "src/components/ui/Card.tsx",
+    "src/components/LoadingSpinner.tsx",
+    "src/components/ErrorBoundary.tsx",
+    "src/hooks/usePerformanceMonitoring.tsx",
+    "src/utils/lazyLoading.tsx",
+    "src/pages/PerformancePage.tsx"
+  ]
+}

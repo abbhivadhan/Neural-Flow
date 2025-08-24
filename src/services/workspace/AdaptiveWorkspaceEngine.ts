@@ -569,7 +569,7 @@ class AdaptiveWorkspaceEngine {
     // Check if there has been recent user activity
     const recentThreshold = 10 * 60 * 1000; // 10 minutes
     const lastActivity = behaviorTracker.getCurrentProductivityMetrics().date;
-    const lastActivityTime = lastActivity instanceof Date ? lastActivity.getTime() : Date.parse(lastActivity.toString());
+    const lastActivityTime = lastActivity instanceof Date ? lastActivity.getTime() : Date.parse(String(lastActivity));
     return Date.now() - lastActivityTime < recentThreshold;
   }
 

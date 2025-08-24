@@ -10,7 +10,7 @@ import {
   InputMode,
   InteractionPreferences,
   EnvironmentalFactors,
-  WorkContext,
+  // WorkContext,
   WorkMode,
   NoiseLevel,
   LightingCondition,
@@ -33,6 +33,7 @@ interface SystemState {
   availableServices: string[];
   contextualAdaptation: boolean;
   learningEnabled: boolean;
+  adaptationCount: number;
 }
 
 interface InteractionEvent {
@@ -80,7 +81,8 @@ export class MultiModalInteractionSystem {
       currentInputMode: InputMode.KEYBOARD,
       availableServices: this.detectAvailableServices(),
       contextualAdaptation: true,
-      learningEnabled: true
+      learningEnabled: true,
+      adaptationCount: 0
     };
 
     this.setupServiceListeners();
@@ -328,7 +330,7 @@ export class MultiModalInteractionSystem {
 
   private monitorEnvironmentalFactors(): void {
     // Monitor noise level through microphone (if available)
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    if (navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === 'function') {
       this.monitorAudioLevel();
     }
     
@@ -552,7 +554,7 @@ export class MultiModalInteractionSystem {
     
     // Update input manager preferences
     this.inputManager.setPreferences({
-      preferredModes: preferences.preferredInputMethods,
+      preferredModes: preferences.preferredInputMethods || [],
       adaptiveEnabled: true
     });
     

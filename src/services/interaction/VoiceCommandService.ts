@@ -1,7 +1,7 @@
-import { VoiceCommand, CommandIntent, InteractionContext } from '../../types/interaction';
+import { VoiceCommand, CommandIntent } from '../../types/interaction';
 
 export class VoiceCommandService {
-  private recognition: SpeechRecognition | null = null;
+  private recognition: any | null = null;
   private isListening = false;
   private onCommandCallback?: (command: VoiceCommand) => void;
   private onErrorCallback?: (error: Error) => void;
@@ -31,27 +31,28 @@ export class VoiceCommandService {
     this.recognition.onstart = this.handleSpeechStart.bind(this);
   }
 
-  private handleSpeechResult(event: SpeechRecognitionEvent): void {
+  private handleSpeechResult(event: any): void {
     const lastResult = event.results[event.results.length - 1];
     
     if (lastResult.isFinal) {
       const transcript = lastResult[0].transcript.trim();
       const confidence = lastResult[0].confidence;
 
+      const intent = this.parseIntent(transcript);
       const voiceCommand: VoiceCommand = {
         id: this.generateCommandId(),
         transcript,
         confidence,
         timestamp: new Date(),
         language: this.currentLanguage,
-        intent: this.parseIntent(transcript)
+        ...(intent && { intent })
       };
 
       this.onCommandCallback?.(voiceCommand);
     }
   }
 
-  private handleSpeechError(event: SpeechRecognitionErrorEvent): void {
+  private handleSpeechError(event: any): void {
     const error = new Error(`Speech recognition error: ${event.error}`);
     this.onErrorCallback?.(error);
     
@@ -95,7 +96,7 @@ export class VoiceCommandService {
       if (match) {
         return {
           action,
-          entity: entity ? match[1] : undefined,
+          entity: entity ? (match[1] || '') : '',
           parameters: { originalTranscript: transcript },
           confidence: 0.8 // Simple confidence score
         };
@@ -162,7 +163,7 @@ export class VoiceCommandService {
 // Extend the Window interface for TypeScript
 declare global {
   interface Window {
-    SpeechRecognition: typeof SpeechRecognition;
-    webkitSpeechRecognition: typeof SpeechRecognition;
+    SpeechRecognition: any;
+    webkitSpeechRecognition: any;
   }
 }

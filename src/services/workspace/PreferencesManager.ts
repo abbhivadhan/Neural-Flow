@@ -219,7 +219,7 @@ class PreferencesManager {
         if (prefs.workspace.density !== 'comfortable') {
           recommendations.push('Comfortable density works best for writing tasks');
         }
-        if (prefs.theme !== 'LIGHT') {
+        if (prefs.theme.isDark) {
           recommendations.push('Light theme can improve readability for writing');
         }
         break;
@@ -238,7 +238,7 @@ class PreferencesManager {
     }
 
     // Time-based recommendations
-    if (context.timeContext.timeOfDay === 'evening' && prefs.theme === 'LIGHT') {
+    if (context.timeContext.timeOfDay === 'evening' && !prefs.theme.isDark) {
       recommendations.push('Switch to dark theme to reduce eye strain in the evening');
     }
 
@@ -418,7 +418,7 @@ class PreferencesManager {
       p => p.hour >= 18 || p.hour <= 6
     ).length;
 
-    if (eveningWork > 5 && preferences.theme === 'LIGHT') {
+    if (eveningWork > 5 && !preferences.theme.isDark) {
       insights.push({
         type: 'preference',
         insight: 'You work frequently in the evening but use light theme',

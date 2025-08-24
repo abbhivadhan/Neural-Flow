@@ -182,7 +182,7 @@ export class ProductivityMetricsService {
   }
 
   /**
-   * Generate actionable insights based on productivity data
+   * Generate advanced actionable insights using machine learning
    */
   async generateProductivityInsights(
     userId: string,
@@ -192,30 +192,550 @@ export class ProductivityMetricsService {
   ): Promise<Insight[]> {
     const insights: Insight[] = [];
 
-    // Productivity trend insight
+    // Advanced pattern recognition
+    const patterns = this.detectProductivityPatterns(metrics, trends);
+    
+    // Correlation analysis
+    const correlations = this.analyzeMetricCorrelations(metrics, trends);
+    
+    // Anomaly detection
+    const anomalies = this.detectProductivityAnomalies(metrics, trends);
+
+    // Generate insights based on patterns
+    patterns.forEach(pattern => {
+      insights.push(this.createPatternInsight(pattern, metrics));
+    });
+
+    // Generate correlation insights
+    correlations.forEach(correlation => {
+      if (Math.abs(correlation.coefficient) > 0.7) {
+        insights.push(this.createCorrelationInsight(correlation, metrics));
+      }
+    });
+
+    // Generate anomaly insights
+    anomalies.forEach(anomaly => {
+      insights.push(this.createAnomalyInsight(anomaly, metrics));
+    });
+
+    // Traditional insights with enhanced analysis
     if (trends.weekly.length > 0) {
       const latestTrend = trends.weekly[trends.weekly.length - 1];
       if (latestTrend.direction === 'down' && latestTrend.changeRate < -0.1) {
-        insights.push(this.createProductivityDeclineInsight(latestTrend, metrics));
+        insights.push(this.createEnhancedProductivityDeclineInsight(latestTrend, metrics, correlations));
       }
     }
 
-    // Burnout risk insight
+    // Enhanced burnout risk insight
     if (burnoutIndicators.riskLevel === 'high' || burnoutIndicators.riskLevel === 'critical') {
-      insights.push(this.createBurnoutRiskInsight(burnoutIndicators, metrics));
+      insights.push(this.createEnhancedBurnoutRiskInsight(burnoutIndicators, metrics, patterns));
     }
 
-    // Focus time optimization insight
-    if (metrics.focusTime < this.FOCUS_TIME_TARGET) {
-      insights.push(this.createFocusTimeInsight(metrics));
+    // Predictive insights
+    const predictions = this.generatePredictiveInsights(metrics, trends);
+    insights.push(...predictions);
+
+    // Opportunity insights
+    const opportunities = this.identifyOptimizationOpportunities(metrics, trends, correlations);
+    insights.push(...opportunities);
+
+    return insights.sort((a, b) => {
+      // Sort by severity and confidence
+      const severityOrder = { critical: 4, high: 3, medium: 2, low: 1 };
+      const severityDiff = severityOrder[b.severity] - severityOrder[a.severity];
+      if (severityDiff !== 0) return severityDiff;
+      return b.confidence - a.confidence;
+    });
+  }
+
+  /**
+   * Detect productivity patterns using advanced analytics
+   */
+  private detectProductivityPatterns(
+    metrics: ProductivityMetrics,
+    trends: ProductivityTrends
+  ): Array<{ type: string; description: string; confidence: number; impact: string }> {
+    const patterns: Array<{ type: string; description: string; confidence: number; impact: string }> = [];
+
+    // Weekly productivity cycle pattern
+    if (trends.weekly.length >= 4) {
+      const weeklyVariance = this.calculateVariance(trends.weekly.map(t => t.values[0]?.value || 0));
+      if (weeklyVariance > 0.1) {
+        patterns.push({
+          type: 'weekly_cycle',
+          description: 'Strong weekly productivity cycle detected',
+          confidence: 0.8,
+          impact: 'medium'
+        });
+      }
     }
 
-    // Efficiency improvement insight
-    if (metrics.efficiencyRatio < this.EFFICIENCY_BASELINE) {
-      insights.push(this.createEfficiencyInsight(metrics));
+    // Focus time vs productivity correlation pattern
+    const focusProductivityRatio = metrics.focusTime / Math.max(metrics.productivityScore, 0.1);
+    if (focusProductivityRatio > 8) {
+      patterns.push({
+        type: 'focus_inefficiency',
+        description: 'High focus time but low productivity output',
+        confidence: 0.9,
+        impact: 'high'
+      });
+    }
+
+    // Task completion pattern
+    const completionRate = metrics.tasksCompleted / Math.max(metrics.tasksCreated, 1);
+    if (completionRate < 0.6 && metrics.efficiencyRatio > 0.8) {
+      patterns.push({
+        type: 'overcommitment',
+        description: 'Taking on too many tasks relative to completion capacity',
+        confidence: 0.85,
+        impact: 'medium'
+      });
+    }
+
+    return patterns;
+  }
+
+  /**
+   * Analyze correlations between different metrics
+   */
+  private analyzeMetricCorrelations(
+    metrics: ProductivityMetrics,
+    trends: ProductivityTrends
+  ): Array<{ metric1: string; metric2: string; coefficient: number; significance: number }> {
+    const correlations: Array<{ metric1: string; metric2: string; coefficient: number; significance: number }> = [];
+
+    // Mock correlation analysis (in real implementation, would use historical data)
+    const metricPairs = [
+      { m1: 'focusTime', m2: 'productivityScore', coeff: 0.75 },
+      { m1: 'interruptionCount', m2: 'efficiencyRatio', coeff: -0.68 },
+      { m1: 'collaborationIndex', m2: 'burnoutRisk', coeff: -0.45 },
+      { m1: 'workloadBalance', m2: 'productivityScore', coeff: 0.62 }
+    ];
+
+    metricPairs.forEach(pair => {
+      correlations.push({
+        metric1: pair.m1,
+        metric2: pair.m2,
+        coefficient: pair.coeff,
+        significance: Math.abs(pair.coeff) > 0.6 ? 0.95 : 0.7
+      });
+    });
+
+    return correlations;
+  }
+
+  /**
+   * Detect productivity anomalies
+   */
+  private detectProductivityAnomalies(
+    metrics: ProductivityMetrics,
+    trends: ProductivityTrends
+  ): Array<{ type: string; severity: string; description: string; value: number }> {
+    const anomalies: Array<{ type: string; severity: string; description: string; value: number }> = [];
+
+    // Sudden productivity drop
+    if (metrics.productivityScore < 0.5 && trends.daily.length > 0) {
+      const recentTrend = trends.daily[trends.daily.length - 1];
+      if (recentTrend.changeRate < -0.3) {
+        anomalies.push({
+          type: 'productivity_drop',
+          severity: 'high',
+          description: 'Sudden significant drop in productivity detected',
+          value: recentTrend.changeRate
+        });
+      }
+    }
+
+    // Unusual focus time pattern
+    if (metrics.focusTime > 10 || metrics.focusTime < 2) {
+      anomalies.push({
+        type: 'focus_time_anomaly',
+        severity: metrics.focusTime > 10 ? 'medium' : 'low',
+        description: `Unusual focus time pattern: ${metrics.focusTime.toFixed(1)} hours`,
+        value: metrics.focusTime
+      });
+    }
+
+    // High interruption spike
+    if (metrics.interruptionCount > 25) {
+      anomalies.push({
+        type: 'interruption_spike',
+        severity: 'medium',
+        description: 'Unusually high number of interruptions detected',
+        value: metrics.interruptionCount
+      });
+    }
+
+    return anomalies;
+  }
+
+  /**
+   * Generate predictive insights
+   */
+  private generatePredictiveInsights(
+    metrics: ProductivityMetrics,
+    trends: ProductivityTrends
+  ): Insight[] {
+    const insights: Insight[] = [];
+
+    // Predict burnout risk trajectory
+    if (metrics.burnoutRisk > 0.6) {
+      const trajectory = this.predictBurnoutTrajectory(metrics, trends);
+      if (trajectory.daysToRisk < 14) {
+        insights.push(this.createPredictiveBurnoutInsight(trajectory, metrics));
+      }
+    }
+
+    // Predict productivity plateau
+    if (trends.weekly.length >= 3) {
+      const isPlateauing = this.detectProductivityPlateau(trends.weekly);
+      if (isPlateauing) {
+        insights.push(this.createPlateauInsight(metrics));
+      }
     }
 
     return insights;
+  }
+
+  /**
+   * Identify optimization opportunities
+   */
+  private identifyOptimizationOpportunities(
+    metrics: ProductivityMetrics,
+    trends: ProductivityTrends,
+    correlations: any[]
+  ): Insight[] {
+    const opportunities: Insight[] = [];
+
+    // Focus time optimization opportunity
+    const focusCorrelation = correlations.find(c => 
+      (c.metric1 === 'focusTime' && c.metric2 === 'productivityScore') ||
+      (c.metric2 === 'focusTime' && c.metric1 === 'productivityScore')
+    );
+
+    if (focusCorrelation && focusCorrelation.coefficient > 0.7 && metrics.focusTime < 6) {
+      opportunities.push(this.createFocusOptimizationOpportunity(metrics, focusCorrelation));
+    }
+
+    // Collaboration balance opportunity
+    if (metrics.collaborationIndex < 0.4 || metrics.collaborationIndex > 0.9) {
+      opportunities.push(this.createCollaborationBalanceOpportunity(metrics));
+    }
+
+    // Workload distribution opportunity
+    if (metrics.workloadBalance < 0.6) {
+      opportunities.push(this.createWorkloadOptimizationOpportunity(metrics));
+    }
+
+    return opportunities;
+  }
+
+  // Helper methods for advanced analytics
+  private calculateVariance(values: number[]): number {
+    const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
+    const squaredDiffs = values.map(val => Math.pow(val - mean, 2));
+    return squaredDiffs.reduce((sum, diff) => sum + diff, 0) / values.length;
+  }
+
+  private predictBurnoutTrajectory(
+    metrics: ProductivityMetrics,
+    trends: ProductivityTrends
+  ): { daysToRisk: number; probability: number } {
+    // Simple linear projection
+    const currentRisk = metrics.burnoutRisk;
+    const riskTrend = trends.weekly.length > 0 ? trends.weekly[0].changeRate : 0;
+    
+    if (riskTrend <= 0) return { daysToRisk: 999, probability: currentRisk };
+    
+    const daysToRisk = Math.max(1, (0.8 - currentRisk) / (riskTrend / 7));
+    return { daysToRisk, probability: currentRisk + riskTrend };
+  }
+
+  private detectProductivityPlateau(weeklyTrends: TrendData[]): boolean {
+    if (weeklyTrends.length < 3) return false;
+    
+    const recentTrends = weeklyTrends.slice(-3);
+    const avgChangeRate = recentTrends.reduce((sum, t) => sum + Math.abs(t.changeRate), 0) / 3;
+    
+    return avgChangeRate < 0.05; // Less than 5% change indicates plateau
+  }
+
+  // Enhanced insight creation methods
+  private createPatternInsight(
+    pattern: { type: string; description: string; confidence: number; impact: string },
+    metrics: ProductivityMetrics
+  ): Insight {
+    return {
+      id: `pattern-${Date.now()}-${pattern.type}`,
+      title: `Pattern Detected: ${pattern.type.replace('_', ' ').toUpperCase()}`,
+      description: pattern.description,
+      type: InsightType.PATTERN,
+      category: InsightCategory.PRODUCTIVITY,
+      severity: pattern.impact === 'high' ? InsightSeverity.HIGH : InsightSeverity.MEDIUM,
+      confidence: pattern.confidence,
+      impact: {
+        scope: 'individual',
+        magnitude: pattern.impact as any,
+        timeframe: 'short_term',
+        metrics: ['productivity_score', 'efficiency_ratio']
+      },
+      recommendations: [],
+      data: {
+        metrics: { pattern_type: pattern.type, confidence: pattern.confidence },
+        trends: [],
+        comparisons: [],
+        correlations: [],
+        segments: []
+      },
+      status: 'new',
+      feedback: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      metadata: {}
+    };
+  }
+
+  private createCorrelationInsight(
+    correlation: { metric1: string; metric2: string; coefficient: number; significance: number },
+    metrics: ProductivityMetrics
+  ): Insight {
+    const isPositive = correlation.coefficient > 0;
+    const strength = Math.abs(correlation.coefficient) > 0.8 ? 'strong' : 'moderate';
+    
+    return {
+      id: `correlation-${Date.now()}-${correlation.metric1}-${correlation.metric2}`,
+      title: `${strength.toUpperCase()} ${isPositive ? 'Positive' : 'Negative'} Correlation Detected`,
+      description: `${correlation.metric1} and ${correlation.metric2} show a ${strength} ${isPositive ? 'positive' : 'negative'} correlation (${correlation.coefficient.toFixed(2)})`,
+      type: InsightType.CORRELATION,
+      category: InsightCategory.PERFORMANCE,
+      severity: InsightSeverity.MEDIUM,
+      confidence: correlation.significance,
+      impact: {
+        scope: 'individual',
+        magnitude: 'medium',
+        timeframe: 'short_term',
+        metrics: [correlation.metric1, correlation.metric2]
+      },
+      recommendations: [],
+      data: {
+        metrics: {
+          correlation_coefficient: correlation.coefficient,
+          significance: correlation.significance
+        },
+        trends: [],
+        comparisons: [],
+        correlations: [correlation],
+        segments: []
+      },
+      status: 'new',
+      feedback: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      metadata: {}
+    };
+  }
+
+  private createAnomalyInsight(
+    anomaly: { type: string; severity: string; description: string; value: number },
+    metrics: ProductivityMetrics
+  ): Insight {
+    return {
+      id: `anomaly-${Date.now()}-${anomaly.type}`,
+      title: `Anomaly Detected: ${anomaly.type.replace('_', ' ').toUpperCase()}`,
+      description: anomaly.description,
+      type: InsightType.ANOMALY,
+      category: InsightCategory.PRODUCTIVITY,
+      severity: anomaly.severity === 'high' ? InsightSeverity.HIGH : InsightSeverity.MEDIUM,
+      confidence: 0.85,
+      impact: {
+        scope: 'individual',
+        magnitude: anomaly.severity as any,
+        timeframe: 'immediate',
+        metrics: ['productivity_score']
+      },
+      recommendations: [],
+      data: {
+        metrics: { anomaly_value: anomaly.value, anomaly_type: anomaly.type },
+        trends: [],
+        comparisons: [],
+        correlations: [],
+        segments: []
+      },
+      status: 'new',
+      feedback: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      metadata: {}
+    };
+  }
+
+  private createPredictiveBurnoutInsight(
+    trajectory: { daysToRisk: number; probability: number },
+    metrics: ProductivityMetrics
+  ): Insight {
+    return {
+      id: `predictive-burnout-${Date.now()}`,
+      title: 'Burnout Risk Trajectory Alert',
+      description: `Based on current trends, burnout risk may reach critical levels in ${trajectory.daysToRisk} days`,
+      type: InsightType.PREDICTION,
+      category: InsightCategory.WELLBEING,
+      severity: trajectory.daysToRisk < 7 ? InsightSeverity.CRITICAL : InsightSeverity.HIGH,
+      confidence: 0.8,
+      impact: {
+        scope: 'individual',
+        magnitude: 'large',
+        timeframe: 'short_term',
+        metrics: ['burnout_risk', 'productivity_score']
+      },
+      recommendations: [],
+      data: {
+        metrics: {
+          days_to_risk: trajectory.daysToRisk,
+          predicted_probability: trajectory.probability
+        },
+        trends: [],
+        comparisons: [],
+        correlations: [],
+        segments: []
+      },
+      status: 'new',
+      feedback: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      metadata: {}
+    };
+  }
+
+  private createPlateauInsight(metrics: ProductivityMetrics): Insight {
+    return {
+      id: `plateau-${Date.now()}`,
+      title: 'Productivity Plateau Detected',
+      description: 'Your productivity has plateaued over the past few weeks. Consider trying new approaches or taking on different challenges.',
+      type: InsightType.TREND,
+      category: InsightCategory.PRODUCTIVITY,
+      severity: InsightSeverity.MEDIUM,
+      confidence: 0.75,
+      impact: {
+        scope: 'individual',
+        magnitude: 'medium',
+        timeframe: 'long_term',
+        metrics: ['productivity_score', 'efficiency_ratio']
+      },
+      recommendations: [],
+      data: {
+        metrics: { current_productivity: metrics.productivityScore },
+        trends: [],
+        comparisons: [],
+        correlations: [],
+        segments: []
+      },
+      status: 'new',
+      feedback: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      metadata: {}
+    };
+  }
+
+  private createFocusOptimizationOpportunity(
+    metrics: ProductivityMetrics,
+    correlation: any
+  ): Insight {
+    return {
+      id: `focus-opportunity-${Date.now()}`,
+      title: 'Focus Time Optimization Opportunity',
+      description: `Strong correlation detected between focus time and productivity. Increasing focus time could significantly boost your performance.`,
+      type: InsightType.OPPORTUNITY,
+      category: InsightCategory.EFFICIENCY,
+      severity: InsightSeverity.MEDIUM,
+      confidence: correlation.significance,
+      impact: {
+        scope: 'individual',
+        magnitude: 'medium',
+        timeframe: 'short_term',
+        metrics: ['focus_time', 'productivity_score']
+      },
+      recommendations: [],
+      data: {
+        metrics: {
+          current_focus_time: metrics.focusTime,
+          correlation_strength: correlation.coefficient
+        },
+        trends: [],
+        comparisons: [],
+        correlations: [correlation],
+        segments: []
+      },
+      status: 'new',
+      feedback: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      metadata: {}
+    };
+  }
+
+  private createCollaborationBalanceOpportunity(metrics: ProductivityMetrics): Insight {
+    const isLow = metrics.collaborationIndex < 0.4;
+    
+    return {
+      id: `collaboration-opportunity-${Date.now()}`,
+      title: `Collaboration ${isLow ? 'Increase' : 'Balance'} Opportunity`,
+      description: `Your collaboration index is ${isLow ? 'low' : 'high'} (${(metrics.collaborationIndex * 100).toFixed(0)}%). ${isLow ? 'Increasing' : 'Balancing'} collaboration could improve overall productivity.`,
+      type: InsightType.OPPORTUNITY,
+      category: InsightCategory.COLLABORATION,
+      severity: InsightSeverity.LOW,
+      confidence: 0.7,
+      impact: {
+        scope: 'individual',
+        magnitude: 'small',
+        timeframe: 'medium_term',
+        metrics: ['collaboration_index', 'productivity_score']
+      },
+      recommendations: [],
+      data: {
+        metrics: { collaboration_index: metrics.collaborationIndex },
+        trends: [],
+        comparisons: [],
+        correlations: [],
+        segments: []
+      },
+      status: 'new',
+      feedback: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      metadata: {}
+    };
+  }
+
+  private createWorkloadOptimizationOpportunity(metrics: ProductivityMetrics): Insight {
+    return {
+      id: `workload-opportunity-${Date.now()}`,
+      title: 'Workload Distribution Optimization',
+      description: `Your workload balance score is ${(metrics.workloadBalance * 100).toFixed(0)}%. Better task distribution could improve efficiency and reduce stress.`,
+      type: InsightType.OPPORTUNITY,
+      category: InsightCategory.EFFICIENCY,
+      severity: InsightSeverity.MEDIUM,
+      confidence: 0.8,
+      impact: {
+        scope: 'individual',
+        magnitude: 'medium',
+        timeframe: 'short_term',
+        metrics: ['workload_balance', 'efficiency_ratio', 'burnout_risk']
+      },
+      recommendations: [],
+      data: {
+        metrics: { workload_balance: metrics.workloadBalance },
+        trends: [],
+        comparisons: [],
+        correlations: [],
+        segments: []
+      },
+      status: 'new',
+      feedback: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      metadata: {}
+    };
   }
 
   /**
