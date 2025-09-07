@@ -63,30 +63,49 @@ export class MultiModalInteractionSystem {
   };
 
   constructor(preferences?: Partial<InteractionPreferences>) {
-    // Initialize services
-    this.voiceService = new VoiceCommandService();
-    this.gestureService = new GestureRecognitionService();
-    this.nlpProcessor = new NaturalLanguageProcessor();
-    this.inputManager = new InputMethodManager({
-      preferredModes: preferences?.preferredInputMethods || [InputMode.KEYBOARD, InputMode.VOICE],
-      adaptiveEnabled: true
-    });
+    try {
+      // Initialize services with error handling
+      this.voiceService = new VoiceCommandService();
+      this.gestureService = new GestureRecognitionService();
+      this.nlpProcessor = new NaturalLanguageProcessor();
+      this.inputManager = new InputMethodManager({
+        preferredModes: preferences?.preferredInputMethods || [InputMode.KEYBOARD, InputMode.VOICE],
+        adaptiveEnabled: true
+      });
 
-    // Initialize context
+      // Initialize context
+      this.currentContext = this.createInitialContext(preferences);
+      
+      // Initialize system state
+      this.systemState = {
+        isActive: false,
+        currentInputMode: InputMode.KEYBOARD,
+        availableServices: this.detectAvailableServices(),
+        contextualAdaptation: true,
+        learningEnabled: true,
+        adaptationCount: 0
+      };
+
+      this.setupServiceListeners();
+      this.startContextMonitoring();
+    } catch (error) {
+      console.error('Failed to initialize MultiModalInteractionSystem:', error);
+      // Initialize with minimal functionality
+      this.initializeMinimal(preferences);
+    }
+  }
+
+  private initializeMinimal(preferences?: Partial<InteractionPreferences>) {
+    // Fallback initialization with basic functionality
     this.currentContext = this.createInitialContext(preferences);
-    
-    // Initialize system state
     this.systemState = {
       isActive: false,
       currentInputMode: InputMode.KEYBOARD,
-      availableServices: this.detectAvailableServices(),
-      contextualAdaptation: true,
-      learningEnabled: true,
+      availableServices: ['keyboard', 'mouse'],
+      contextualAdaptation: false,
+      learningEnabled: false,
       adaptationCount: 0
     };
-
-    this.setupServiceListeners();
-    this.startContextMonitoring();
   }
 
   private createInitialContext(preferences?: Partial<InteractionPreferences>): InteractionContext {
@@ -442,7 +461,12 @@ export class MultiModalInteractionSystem {
       
       // Initialize voice service if supported and enabled
       if (this.currentContext.userPreferences.preferredInputMethods.includes(InputMode.VOICE)) {
-        this.voiceService.setLanguage(this.currentContext.userPreferences.voiceLanguage);
+        try {
+          this.voiceService.setLanguage(this.currentContext.userPreferences.voiceLanguage);
+        } catch (voiceError) {
+          console.warn('Voice service initialization failed:', voiceError);
+          // Continue without voice service
+        }
       }
       
       console.log('MultiModal Interaction System initialized successfully');

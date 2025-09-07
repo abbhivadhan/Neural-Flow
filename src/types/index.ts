@@ -249,3 +249,9 @@ export interface Theme {
   borderRadius: Record<string, string>;
   shadows: Record<string, string>;
 }
+
+// Re-export tutorial types
+export * from './tutorial';
+
+// Re-export dashboard types
+export * from './dashboard';

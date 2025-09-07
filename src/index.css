@@ -2,6 +2,64 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Settings-based styles */
+:root {
+  --accent-color: #3b82f6;
+  --base-font-size: 16px;
+}
+
+.compact-mode {
+  --spacing-unit: 0.75rem;
+}
+
+.compact-mode .p-4 {
+  padding: calc(var(--spacing-unit) * 0.75);
+}
+
+.compact-mode .p-6 {
+  padding: var(--spacing-unit);
+}
+
+.compact-mode .space-y-4 > * + * {
+  margin-top: calc(var(--spacing-unit) * 0.75);
+}
+
+.compact-mode .space-y-6 > * + * {
+  margin-top: var(--spacing-unit);
+}
+
+.no-animations * {
+  animation-duration: 0s !important;
+  animation-delay: 0s !important;
+  transition-duration: 0s !important;
+  transition-delay: 0s !important;
+}
+
+/* Custom scrollbar styles */
+.scrollbar-thin {
+  scrollbar-width: thin;
+}
+
+.scrollbar-thumb-slate-300::-webkit-scrollbar-thumb {
+  background-color: rgb(203 213 225);
+}
+
+.scrollbar-thumb-slate-600::-webkit-scrollbar-thumb {
+  background-color: rgb(71 85 105);
+}
+
+.scrollbar-track-transparent::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+.hover\:scrollbar-thumb-slate-400:hover::-webkit-scrollbar-thumb {
+  background-color: rgb(148 163 184);
+}
+
+.dark .hover\:scrollbar-thumb-slate-500:hover::-webkit-scrollbar-thumb {
+  background-color: rgb(100 116 139);
+}
+
 @layer base {
   html {
     font-family: 'Inter', system-ui, sans-serif;

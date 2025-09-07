@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import * as d3 from 'd3';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
 import { Badge } from '../ui/Badge';
@@ -29,292 +29,201 @@ export default function ProductivityMetricsWidget({
 }: ProductivityMetricsWidgetProps) {
   const chartRef = useRef<HTMLDivElement>(null);
   const trendChartRef = useRef<HTMLDivElement>(null);
+  const [chartsInitialized, setChartsInitialized] = useState(false);
 
-  // Create productivity score gauge chart
+  // Early return if no metrics
+  if (!metrics) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-center h-48">
+              <p className="text-gray-500">Loading productivity metrics...</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Memoize trend data to prevent unnecessary recalculations
+  const trendData = useMemo(() => [
+    { date: '2024-01-01', value: 0.75, confidence: [0.70, 0.80], anomaly: false },
+    { date: '2024-01-02', value: 0.78, confidence: [0.73, 0.83], anomaly: false },
+    { date: '2024-01-03', value: 0.82, confidence: [0.77, 0.87], anomaly: false },
+    { date: '2024-01-04', value: 0.79, confidence: [0.74, 0.84], anomaly: false },
+    { date: '2024-01-05', value: 0.85, confidence: [0.80, 0.90], anomaly: false },
+    { date: '2024-01-06', value: 0.88, confidence: [0.83, 0.93], anomaly: false },
+    { date: '2024-01-07', value: metrics.productivityScore, confidence: [metrics.productivityScore - 0.05, metrics.productivityScore + 0.05], anomaly: metrics.productivityScore < 0.6 || metrics.productivityScore > 0.95 }
+  ], [metrics.productivityScore]);
+
+  // Create charts once when component mounts and data is available
   useEffect(() => {
-    if (!chartRef.current) return;
-
-    const container = d3.select(chartRef.current);
-    container.selectAll('*').remove();
-
-    const width = 300;
-    const height = 200;
-    const radius = Math.min(width, height) / 2 - 20;
-
-    const svg = container
-      .append('svg')
-      .attr('width', width)
-      .attr('height', height);
-
-    const g = svg
-      .append('g')
-      .attr('transform', `translate(${width / 2}, ${height / 2})`);
-
-    // Create gauge background
-    const arc = d3.arc()
-      .innerRadius(radius - 20)
-      .outerRadius(radius)
-      .startAngle(-Math.PI / 2)
-      .endAngle(Math.PI / 2);
-
-    g.append('path')
-      .datum({ startAngle: -Math.PI / 2, endAngle: Math.PI / 2 })
-      .style('fill', '#e5e7eb')
-      .attr('d', arc as any);
-
-    // Create gauge fill
-    const scoreAngle = -Math.PI / 2 + (metrics.productivityScore * Math.PI);
-    const scoreArc = d3.arc()
-      .innerRadius(radius - 20)
-      .outerRadius(radius)
-      .startAngle(-Math.PI / 2)
-      .endAngle(scoreAngle);
-
-    g.append('path')
-      .datum({ startAngle: -Math.PI / 2, endAngle: scoreAngle })
-      .style('fill', metrics.productivityScore > 0.8 ? '#10b981' : 
-                    metrics.productivityScore > 0.6 ? '#f59e0b' : '#ef4444')
-      .attr('d', scoreArc as any);
-
-    // Add score text
-    g.append('text')
-      .attr('text-anchor', 'middle')
-      .attr('dy', '0.35em')
-      .style('font-size', '24px')
-      .style('font-weight', 'bold')
-      .style('fill', '#1f2937')
-      .text(`${(metrics.productivityScore * 100).toFixed(0)}%`);
-
-    g.append('text')
-      .attr('text-anchor', 'middle')
-      .attr('dy', '1.5em')
-      .style('font-size', '12px')
-      .style('fill', '#6b7280')
-      .text('Productivity Score');
-
-  }, [metrics.productivityScore]);
-
-  // Create advanced trend chart with confidence intervals and anomaly detection
-  useEffect(() => {
-    if (!trendChartRef.current) return;
-
-    const container = d3.select(trendChartRef.current);
-    container.selectAll('*').remove();
-
-    // Enhanced trend data with confidence intervals and anomaly detection
-    const trendData = [
-      { date: '2024-01-01', value: 0.75, confidence: [0.70, 0.80], anomaly: false },
-      { date: '2024-01-02', value: 0.78, confidence: [0.73, 0.83], anomaly: false },
-      { date: '2024-01-03', value: 0.82, confidence: [0.77, 0.87], anomaly: false },
-      { date: '2024-01-04', value: 0.79, confidence: [0.74, 0.84], anomaly: false },
-      { date: '2024-01-05', value: 0.85, confidence: [0.80, 0.90], anomaly: false },
-      { date: '2024-01-06', value: 0.88, confidence: [0.83, 0.93], anomaly: false },
-      { date: '2024-01-07', value: metrics.productivityScore, confidence: [metrics.productivityScore - 0.05, metrics.productivityScore + 0.05], anomaly: metrics.productivityScore < 0.6 || metrics.productivityScore > 0.95 }
-    ];
-
-    const width = 500;
-    const height = 250;
-    const margin = { top: 20, right: 30, bottom: 40, left: 50 };
-    const chartWidth = width - margin.left - margin.right;
-    const chartHeight = height - margin.top - margin.bottom;
-
-    const svg = container
-      .append('svg')
-      .attr('width', width)
-      .attr('height', height);
-
-    const g = svg
-      .append('g')
-      .attr('transform', `translate(${margin.left}, ${margin.top})`);
-
-    // Scales
-    const xScale = d3.scaleTime()
-      .domain(d3.extent(trendData, d => new Date(d.date)) as [Date, Date])
-      .range([0, chartWidth]);
-
-    const yScale = d3.scaleLinear()
-      .domain([0, 1])
-      .range([chartHeight, 0]);
-
-    // Create gradient for confidence area
-    const gradient = svg.append('defs')
-      .append('linearGradient')
-      .attr('id', 'confidence-gradient')
-      .attr('gradientUnits', 'userSpaceOnUse')
-      .attr('x1', 0).attr('y1', chartHeight)
-      .attr('x2', 0).attr('y2', 0);
-
-    gradient.append('stop')
-      .attr('offset', '0%')
-      .attr('stop-color', '#3b82f6')
-      .attr('stop-opacity', 0.1);
-
-    gradient.append('stop')
-      .attr('offset', '100%')
-      .attr('stop-color', '#3b82f6')
-      .attr('stop-opacity', 0.3);
-
-    // Confidence area generator
-    const area = d3.area<{ date: string; value: number; confidence: [number, number] }>()
-      .x(d => xScale(new Date(d.date)))
-      .y0(d => yScale(d.confidence[0]))
-      .y1(d => yScale(d.confidence[1]))
-      .curve(d3.curveMonotoneX);
-
-    // Add confidence interval area
-    g.append('path')
-      .datum(trendData)
-      .attr('fill', 'url(#confidence-gradient)')
-      .attr('d', area);
-
-    // Line generator
-    const line = d3.line<{ date: string; value: number }>()
-      .x(d => xScale(new Date(d.date)))
-      .y(d => yScale(d.value))
-      .curve(d3.curveMonotoneX);
-
-    // Add main trend line
-    g.append('path')
-      .datum(trendData)
-      .attr('fill', 'none')
-      .attr('stroke', '#3b82f6')
-      .attr('stroke-width', 3)
-      .attr('d', line);
-
-    // Add data points with anomaly highlighting
-    g.selectAll('.dot')
-      .data(trendData)
-      .enter()
-      .append('circle')
-      .attr('class', 'dot')
-      .attr('cx', d => xScale(new Date(d.date)))
-      .attr('cy', d => yScale(d.value))
-      .attr('r', d => d.anomaly ? 6 : 4)
-      .attr('fill', d => d.anomaly ? '#ef4444' : '#3b82f6')
-      .attr('stroke', d => d.anomaly ? '#dc2626' : '#1d4ed8')
-      .attr('stroke-width', d => d.anomaly ? 2 : 1)
-      .on('mouseover', function(event, d) {
-        // Enhanced tooltip
-        const tooltip = d3.select('body').append('div')
-          .attr('class', 'tooltip')
-          .style('opacity', 0)
-          .style('position', 'absolute')
-          .style('background', 'rgba(0,0,0,0.9)')
-          .style('color', 'white')
-          .style('padding', '12px')
-          .style('border-radius', '8px')
-          .style('font-size', '12px')
-          .style('box-shadow', '0 4px 6px rgba(0,0,0,0.1)')
-          .style('pointer-events', 'none');
-
-        tooltip.transition().duration(200).style('opacity', 1);
-        tooltip.html(`
-          <div style="font-weight: bold; margin-bottom: 4px;">${new Date(d.date).toLocaleDateString()}</div>
-          <div>Score: ${(d.value * 100).toFixed(1)}%</div>
-          <div>Range: ${(d.confidence[0] * 100).toFixed(1)}% - ${(d.confidence[1] * 100).toFixed(1)}%</div>
-          ${d.anomaly ? '<div style="color: #ef4444; font-weight: bold;">⚠ Anomaly Detected</div>' : ''}
-        `)
-          .style('left', (event.pageX + 10) + 'px')
-          .style('top', (event.pageY - 10) + 'px');
-      })
-      .on('mouseout', function() {
-        d3.selectAll('.tooltip').remove();
-      });
-
-    // Add trend line (linear regression)
-    const trendLine = this.calculateTrendLine(trendData);
-    if (trendLine) {
-      g.append('line')
-        .attr('x1', xScale(new Date(trendData[0].date)))
-        .attr('y1', yScale(trendLine.start))
-        .attr('x2', xScale(new Date(trendData[trendData.length - 1].date)))
-        .attr('y2', yScale(trendLine.end))
-        .attr('stroke', '#10b981')
-        .attr('stroke-width', 2)
-        .attr('stroke-dasharray', '5,5')
-        .attr('opacity', 0.7);
+    if (!chartRef.current || !trendChartRef.current || !metrics || chartsInitialized) {
+      return;
     }
 
-    // Add axes with better formatting
-    const xAxis = g.append('g')
-      .attr('transform', `translate(0, ${chartHeight})`)
-      .call(d3.axisBottom(xScale)
-        .tickFormat(d3.timeFormat('%m/%d'))
-        .ticks(5));
+    const createGaugeChart = () => {
+      try {
+        const container = d3.select(chartRef.current);
+        container.selectAll('*').remove();
 
-    const yAxis = g.append('g')
-      .call(d3.axisLeft(yScale)
-        .tickFormat(d3.format('.0%'))
-        .ticks(5));
+        const width = 300;
+        const height = 200;
+        const radius = Math.min(width, height) / 2 - 20;
 
-    // Style axes
-    xAxis.selectAll('text')
-      .style('font-size', '11px')
-      .style('fill', '#6b7280');
+        const svg = container
+          .append('svg')
+          .attr('width', width)
+          .attr('height', height);
 
-    yAxis.selectAll('text')
-      .style('font-size', '11px')
-      .style('fill', '#6b7280');
+        const g = svg
+          .append('g')
+          .attr('transform', `translate(${width / 2}, ${height / 2})`);
 
-    // Add grid lines
-    g.append('g')
-      .attr('class', 'grid')
-      .attr('transform', `translate(0, ${chartHeight})`)
-      .call(d3.axisBottom(xScale)
-        .tickSize(-chartHeight)
-        .tickFormat('')
-        .ticks(5))
-      .style('stroke-dasharray', '2,2')
-      .style('opacity', 0.3);
+        // Create gauge background
+        const arc = d3.arc()
+          .innerRadius(radius - 20)
+          .outerRadius(radius)
+          .startAngle(-Math.PI / 2)
+          .endAngle(Math.PI / 2);
 
-    g.append('g')
-      .attr('class', 'grid')
-      .call(d3.axisLeft(yScale)
-        .tickSize(-chartWidth)
-        .tickFormat('')
-        .ticks(5))
-      .style('stroke-dasharray', '2,2')
-      .style('opacity', 0.3);
+        g.append('path')
+          .datum({ startAngle: -Math.PI / 2, endAngle: Math.PI / 2 })
+          .style('fill', '#e5e7eb')
+          .attr('d', arc as any);
 
-    // Add labels
-    g.append('text')
-      .attr('transform', 'rotate(-90)')
-      .attr('y', 0 - margin.left)
-      .attr('x', 0 - (chartHeight / 2))
-      .attr('dy', '1em')
-      .style('text-anchor', 'middle')
-      .style('font-size', '12px')
-      .style('fill', '#6b7280')
-      .text('Productivity Score');
+        // Create gauge fill
+        const scoreAngle = -Math.PI / 2 + (metrics.productivityScore * Math.PI);
+        const scoreArc = d3.arc()
+          .innerRadius(radius - 20)
+          .outerRadius(radius)
+          .startAngle(-Math.PI / 2)
+          .endAngle(scoreAngle);
 
-    g.append('text')
-      .attr('transform', `translate(${chartWidth / 2}, ${chartHeight + margin.bottom - 5})`)
-      .style('text-anchor', 'middle')
-      .style('font-size', '12px')
-      .style('fill', '#6b7280')
-      .text('Date');
+        g.append('path')
+          .datum({ startAngle: -Math.PI / 2, endAngle: scoreAngle })
+          .style('fill', metrics.productivityScore > 0.8 ? '#10b981' : 
+                        metrics.productivityScore > 0.6 ? '#f59e0b' : '#ef4444')
+          .attr('d', scoreArc as any);
 
-  }, [metrics]);
+        // Add score text
+        g.append('text')
+          .attr('text-anchor', 'middle')
+          .attr('dy', '0.35em')
+          .style('font-size', '24px')
+          .style('font-weight', 'bold')
+          .style('fill', '#1f2937')
+          .text(`${(metrics.productivityScore * 100).toFixed(0)}%`);
 
-  // Helper method to calculate trend line
-  const calculateTrendLine = (data: any[]) => {
-    const n = data.length;
-    const x = data.map((_, i) => i);
-    const y = data.map(d => d.value);
-    
-    const sumX = x.reduce((a, b) => a + b, 0);
-    const sumY = y.reduce((a, b) => a + b, 0);
-    const sumXY = x.reduce((sum, xi, i) => sum + xi * y[i], 0);
-    const sumXX = x.reduce((sum, xi) => sum + xi * xi, 0);
-    
-    const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
-    const intercept = (sumY - slope * sumX) / n;
-    
-    return {
-      start: intercept,
-      end: slope * (n - 1) + intercept
+        g.append('text')
+          .attr('text-anchor', 'middle')
+          .attr('dy', '1.5em')
+          .style('font-size', '12px')
+          .style('fill', '#6b7280')
+          .text('Productivity Score');
+
+      } catch (error) {
+        console.error('Error creating gauge chart:', error);
+      }
     };
-  };
+
+    const createTrendChart = () => {
+      try {
+        const container = d3.select(trendChartRef.current);
+        container.selectAll('*').remove();
+
+        const width = 500;
+        const height = 250;
+        const margin = { top: 20, right: 30, bottom: 40, left: 50 };
+        const chartWidth = width - margin.left - margin.right;
+        const chartHeight = height - margin.top - margin.bottom;
+
+        const svg = container
+          .append('svg')
+          .attr('width', width)
+          .attr('height', height);
+
+        const g = svg
+          .append('g')
+          .attr('transform', `translate(${margin.left}, ${margin.top})`);
+
+        // Scales
+        const xScale = d3.scaleTime()
+          .domain(d3.extent(trendData, d => new Date(d.date)) as [Date, Date])
+          .range([0, chartWidth]);
+
+        const yScale = d3.scaleLinear()
+          .domain([0, 1])
+          .range([chartHeight, 0]);
+
+        // Line generator
+        const line = d3.line<{ date: string; value: number }>()
+          .x(d => xScale(new Date(d.date)))
+          .y(d => yScale(d.value))
+          .curve(d3.curveMonotoneX);
+
+        // Add main trend line
+        g.append('path')
+          .datum(trendData)
+          .attr('fill', 'none')
+          .attr('stroke', '#3b82f6')
+          .attr('stroke-width', 3)
+          .attr('d', line);
+
+        // Add data points
+        g.selectAll('.dot')
+          .data(trendData)
+          .enter()
+          .append('circle')
+          .attr('class', 'dot')
+          .attr('cx', d => xScale(new Date(d.date)))
+          .attr('cy', d => yScale(d.value))
+          .attr('r', 4)
+          .attr('fill', '#3b82f6')
+          .attr('stroke', '#1d4ed8')
+          .attr('stroke-width', 1);
+
+        // Add axes
+        g.append('g')
+          .attr('transform', `translate(0, ${chartHeight})`)
+          .call(d3.axisBottom(xScale)
+            .tickFormat(d3.timeFormat('%m/%d'))
+            .ticks(5));
+
+        g.append('g')
+          .call(d3.axisLeft(yScale)
+            .tickFormat(d3.format('.0%'))
+            .ticks(5));
+
+      } catch (error) {
+        console.error('Error creating trend chart:', error);
+      }
+    };
+
+    // Create both charts
+    createGaugeChart();
+    createTrendChart();
+    setChartsInitialized(true);
+
+  }, [metrics, trendData, chartsInitialized]);
+
+  // Reset charts when metrics change significantly
+  useEffect(() => {
+    setChartsInitialized(false);
+  }, [metrics?.productivityScore]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (chartRef.current) {
+        d3.select(chartRef.current).selectAll('*').remove();
+      }
+      if (trendChartRef.current) {
+        d3.select(trendChartRef.current).selectAll('*').remove();
+      }
+    };
+  }, []);
 
   const getMetricStatus = (value: number, threshold: number) => {
     return value >= threshold ? 'good' : 'needs-attention';
@@ -343,7 +252,11 @@ export default function ProductivityMetricsWidget({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div ref={chartRef} className="flex justify-center"></div>
+            <div 
+              ref={chartRef} 
+              className="flex justify-center min-h-[200px] w-full"
+              style={{ minHeight: '200px', width: '100%' }}
+            ></div>
             <div className="mt-4 space-y-2">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Current Score</span>
@@ -368,7 +281,11 @@ export default function ProductivityMetricsWidget({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div ref={trendChartRef}></div>
+            <div 
+              ref={trendChartRef} 
+              className="min-h-[250px] w-full"
+              style={{ minHeight: '250px', width: '100%' }}
+            ></div>
             <div className="mt-4 flex items-center justify-between">
               <span className="text-sm text-gray-600">Trend Direction</span>
               <div className="flex items-center">

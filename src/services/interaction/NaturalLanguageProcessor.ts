@@ -32,12 +32,20 @@ export class NaturalLanguageProcessor {
   private maxContextHistory = 10;
 
   constructor() {
-    this.initializeNLP();
     this.setupIntentPatterns();
+    // Initialize NLP asynchronously to avoid blocking
+    this.initializeNLP().catch(error => {
+      console.warn('NLP initialization failed, using pattern matching only:', error);
+    });
   }
 
   private async initializeNLP(): Promise<void> {
     try {
+      // Check if transformers library is available
+      if (typeof pipeline === 'undefined') {
+        throw new Error('Transformers library not available');
+      }
+      
       // Initialize a lightweight classification model for intent recognition
       this.classifier = await pipeline(
         'text-classification',
@@ -45,6 +53,7 @@ export class NaturalLanguageProcessor {
         { revision: 'main' }
       ) as any;
       this.isInitialized = true;
+      console.log('NLP pipeline initialized successfully');
     } catch (error) {
       console.warn('Failed to initialize NLP pipeline, falling back to pattern matching:', error);
       this.isInitialized = false;

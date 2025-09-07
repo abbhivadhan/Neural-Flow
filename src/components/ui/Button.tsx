@@ -1,9 +1,12 @@
-import React, { forwardRef } from 'react';
+import React, { forwardRef, useRef } from 'react';
 import { useResponsiveDesign } from '../../hooks/useResponsiveDesign';
 import { useAccessibility } from '../../hooks/useAccessibility';
+import { HoverEffect } from '../effects/HoverEffects';
+import { useHapticFeedback } from '../../utils/hapticFeedback';
+import { microInteractions } from '../../utils/animations';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'default' | 'outline' | 'destructive' | 'ghost' | 'primary' | 'secondary';
+  variant?: 'default' | 'outline' | 'destructive' | 'ghost' | 'primary' | 'secondary' | 'neural' | 'cta' | 'quickstart';
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   loading?: boolean;
   icon?: React.ReactNode;
@@ -12,6 +15,9 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
   'aria-label'?: string;
   'aria-describedby'?: string;
+  hoverEffect?: 'glow' | 'lift' | 'tilt' | 'neural' | 'pulse' | 'magnetic' | 'quickstart' | 'none';
+  hapticEnabled?: boolean;
+  glowColor?: string;
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(({ 
@@ -25,15 +31,33 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(({
   children, 
   disabled,
   onClick,
+  onMouseEnter,
+  onMouseLeave,
   'aria-label': ariaLabel,
   'aria-describedby': ariaDescribedBy,
+  hoverEffect = 'glow',
+  hapticEnabled = true,
+  glowColor,
   ...props 
 }, ref) => {
   const { isMobile, touchDevice, prefersReducedMotion } = useResponsiveDesign();
   const { announce } = useAccessibility();
+  const { buttonPress, buttonRelease } = useHapticFeedback();
+  const internalRef = useRef<HTMLButtonElement>(null);
+  const buttonRef = (ref as React.RefObject<HTMLButtonElement>) || internalRef;
 
-  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+  const handleClick = async (event: React.MouseEvent<HTMLButtonElement>) => {
     if (loading || disabled) return;
+
+    // Haptic feedback
+    if (hapticEnabled && !prefersReducedMotion) {
+      buttonPress();
+    }
+
+    // Visual feedback
+    if (buttonRef.current && !prefersReducedMotion) {
+      await microInteractions.pulse(buttonRef.current, 1.05, 150);
+    }
     
     // Announce action for screen readers
     if (ariaLabel) {
@@ -43,8 +67,24 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(({
     onClick?.(event);
   };
 
+  const handleMouseEnter = (event: React.MouseEvent<HTMLButtonElement>) => {
+    if (loading || disabled) return;
+    onMouseEnter?.(event);
+  };
+
+  const handleMouseLeave = (event: React.MouseEvent<HTMLButtonElement>) => {
+    if (loading || disabled) return;
+
+    // Haptic feedback on release
+    if (hapticEnabled && !prefersReducedMotion) {
+      buttonRelease();
+    }
+
+    onMouseLeave?.(event);
+  };
+
   const baseClasses = [
-    'inline-flex items-center justify-center rounded-lg font-medium',
+    'inline-flex items-center justify-center rounded-lg font-medium group',
     'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-slate-900',
     'disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed',
     'select-none',
@@ -62,7 +102,10 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(({
     secondary: 'bg-secondary-600 text-white hover:bg-secondary-700 focus:ring-secondary-500 shadow-lg hover:shadow-xl',
     outline: 'border-2 border-slate-300 bg-transparent text-slate-700 hover:bg-slate-50 focus:ring-slate-500 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800',
     destructive: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 shadow-lg hover:shadow-xl',
-    ghost: 'text-slate-700 hover:bg-slate-100 focus:ring-slate-500 dark:text-slate-300 dark:hover:bg-slate-800'
+    ghost: 'text-slate-700 hover:bg-slate-100 focus:ring-slate-500 dark:text-slate-300 dark:hover:bg-slate-800',
+    neural: 'bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 text-white hover:from-blue-700 hover:via-purple-700 hover:to-blue-700 focus:ring-purple-500 shadow-lg hover:shadow-xl relative overflow-hidden',
+    cta: 'bg-gradient-to-r from-primary-500 via-secondary-500 to-primary-600 text-white hover:from-primary-600 hover:via-secondary-600 hover:to-primary-700 focus:ring-primary-500 shadow-xl hover:shadow-2xl relative overflow-hidden font-semibold text-shadow-md',
+    quickstart: 'bg-gradient-to-r from-primary-600 via-purple-600 to-secondary-600 text-white hover:from-primary-700 hover:via-purple-700 hover:to-secondary-700 focus:ring-purple-500 shadow-xl hover:shadow-2xl relative overflow-hidden font-bold border-2 border-white/20 hover:border-white/30 text-shadow-lg uppercase tracking-wider'
   };
   
   const sizeClasses = {
@@ -97,12 +140,28 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(({
     </svg>
   );
   
-  return (
+  const getGlowColor = () => {
+    if (glowColor) return glowColor;
+    
+    switch (variant) {
+      case 'primary': return '#3b82f6';
+      case 'secondary': return '#6b7280';
+      case 'destructive': return '#ef4444';
+      case 'neural': return '#8b5cf6';
+      case 'cta': return '#d946ef';
+      case 'quickstart': return '#8b5cf6';
+      default: return '#3b82f6';
+    }
+  };
+
+  const buttonContent = (
     <button 
-      ref={ref}
+      ref={buttonRef}
       className={`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
       disabled={disabled || loading}
       onClick={handleClick}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       aria-label={ariaLabel}
       aria-describedby={ariaDescribedBy}
       aria-disabled={disabled || loading}
@@ -112,12 +171,60 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(({
       {!loading && icon && iconPosition === 'left' && (
         <span className="mr-2" aria-hidden="true">{icon}</span>
       )}
-      <span className={loading ? 'opacity-0' : ''}>{children}</span>
+      <span className={`
+        ${loading ? 'opacity-0' : ''}
+        ${variant === 'quickstart' ? 'text-shadow-lg drop-shadow-sm animate-text-glow' : ''}
+        ${variant === 'cta' ? 'text-shadow-md' : ''}
+        relative z-10 font-medium tracking-wide
+      `}>
+        {children}
+        {/* Text highlight effect for premium variants */}
+        {(variant === 'quickstart' || variant === 'cta') && !disabled && !loading && !prefersReducedMotion && (
+          <span className="absolute inset-0 bg-gradient-to-r from-white/20 via-white/40 to-white/20 -translate-x-full animate-shimmer opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        )}
+      </span>
       {!loading && icon && iconPosition === 'right' && (
         <span className="ml-2" aria-hidden="true">{icon}</span>
       )}
+      
+      {/* Neural variant background animation */}
+      {variant === 'neural' && !disabled && !loading && !prefersReducedMotion && (
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-shimmer" />
+      )}
+      
+      {/* CTA variant enhanced effects */}
+      {variant === 'cta' && !disabled && !loading && !prefersReducedMotion && (
+        <>
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent -translate-x-full animate-shimmer" />
+          <div className="absolute inset-0 bg-gradient-to-r from-primary-400/20 to-secondary-400/20 animate-pulse-glow" />
+        </>
+      )}
+      
+      {/* QuickStart variant premium effects */}
+      {variant === 'quickstart' && !disabled && !loading && !prefersReducedMotion && (
+        <>
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-shimmer" />
+          <div className="absolute inset-0 bg-gradient-to-r from-primary-300/30 via-purple-300/30 to-secondary-300/30 animate-glow-pulse" />
+          <div className="absolute -inset-1 bg-gradient-to-r from-primary-500 via-purple-500 to-secondary-500 rounded-lg blur opacity-30 animate-pulse" />
+        </>
+      )}
     </button>
   );
+
+  // Wrap with hover effect if not disabled and effect is enabled
+  if (!disabled && !loading && hoverEffect !== 'none' && !prefersReducedMotion) {
+    return (
+      <HoverEffect
+        effect={hoverEffect}
+        color={getGlowColor()}
+        intensity="medium"
+      >
+        {buttonContent}
+      </HoverEffect>
+    );
+  }
+
+  return buttonContent;
 });
 
 Button.displayName = 'Button';

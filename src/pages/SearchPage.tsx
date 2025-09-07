@@ -41,80 +41,88 @@ const SearchPage: React.FC = () => {
   };
 
   const initializeDemoData = async () => {
-    // Index some demo documents for testing
-    const demoDocuments = [
-      {
-        id: 'demo-ai-productivity',
-        content: {
-          title: 'AI-Powered Productivity Tools for Modern Workplaces',
-          body: 'Artificial intelligence is revolutionizing how we work, offering unprecedented opportunities to enhance productivity and streamline workflows. From intelligent task management to automated content generation, AI tools are becoming essential for competitive advantage. This comprehensive guide explores the latest AI productivity solutions, including machine learning algorithms for priority optimization, natural language processing for document analysis, and predictive analytics for resource planning. Learn how to integrate these cutting-edge technologies into your daily workflow and achieve remarkable efficiency gains.',
-          keywords: ['AI', 'productivity', 'automation', 'machine learning', 'workflow optimization'],
-          entities: [],
-          topics: [
-            { name: 'Artificial Intelligence', confidence: 0.95, keywords: ['AI', 'machine learning'], category: 'technology' },
-            { name: 'Productivity', confidence: 0.90, keywords: ['efficiency', 'workflow'], category: 'business' }
-          ],
-          language: 'en',
-          contentType: 'article',
+    try {
+      // Index some demo documents for testing
+      const demoDocuments = [
+        {
+          id: 'demo-ai-productivity',
+          content: {
+            title: 'AI-Powered Productivity Tools for Modern Workplaces',
+            body: 'Artificial intelligence is revolutionizing how we work, offering unprecedented opportunities to enhance productivity and streamline workflows. From intelligent task management to automated content generation, AI tools are becoming essential for competitive advantage. This comprehensive guide explores the latest AI productivity solutions, including machine learning algorithms for priority optimization, natural language processing for document analysis, and predictive analytics for resource planning. Learn how to integrate these cutting-edge technologies into your daily workflow and achieve remarkable efficiency gains.',
+            keywords: ['AI', 'productivity', 'automation', 'machine learning', 'workflow optimization'],
+            entities: [],
+            topics: [
+              { name: 'Artificial Intelligence', confidence: 0.95, keywords: ['AI', 'machine learning'], category: 'technology' },
+              { name: 'Productivity', confidence: 0.90, keywords: ['efficiency', 'workflow'], category: 'business' }
+            ],
+            language: 'en',
+            contentType: 'article',
+          },
+          metadata: {
+            category: 'technology',
+            tags: ['ai', 'productivity', 'automation'],
+          }
         },
-        metadata: {
-          category: 'technology',
-          tags: ['ai', 'productivity', 'automation'],
+        {
+          id: 'demo-remote-collaboration',
+          content: {
+            title: 'Best Practices for Remote Team Collaboration',
+            body: 'Remote work has become the new normal, requiring teams to adapt their collaboration strategies for distributed environments. Effective remote collaboration depends on clear communication protocols, robust project management systems, and the right technology stack. This guide covers essential tools and techniques for maintaining team cohesion, including video conferencing best practices, asynchronous communication strategies, and collaborative document editing workflows. Discover how to build trust, maintain accountability, and foster innovation in virtual team settings.',
+            keywords: ['remote work', 'collaboration', 'team management', 'communication', 'virtual teams'],
+            entities: [],
+            topics: [
+              { name: 'Remote Work', confidence: 0.92, keywords: ['remote', 'distributed'], category: 'work' },
+              { name: 'Team Collaboration', confidence: 0.88, keywords: ['teamwork', 'communication'], category: 'management' }
+            ],
+            language: 'en',
+            contentType: 'guide',
+          },
+          metadata: {
+            category: 'collaboration',
+            tags: ['remote', 'teamwork', 'communication'],
+          }
+        },
+        {
+          id: 'demo-project-management',
+          content: {
+            title: 'Agile Project Management Methodologies Comparison',
+            body: 'Choosing the right project management methodology is crucial for project success. This comprehensive comparison examines popular agile frameworks including Scrum, Kanban, and Lean, analyzing their strengths, weaknesses, and ideal use cases. Learn about sprint planning, backlog management, daily standups, and retrospectives. Understand how to select the most appropriate methodology based on team size, project complexity, and organizational culture. Includes practical implementation tips and common pitfalls to avoid.',
+            keywords: ['agile', 'scrum', 'kanban', 'project management', 'methodology'],
+            entities: [],
+            topics: [
+              { name: 'Project Management', confidence: 0.94, keywords: ['agile', 'scrum'], category: 'management' },
+              { name: 'Methodology', confidence: 0.87, keywords: ['framework', 'process'], category: 'process' }
+            ],
+            language: 'en',
+            contentType: 'comparison',
+          },
+          metadata: {
+            category: 'management',
+            tags: ['agile', 'scrum', 'methodology'],
+          }
         }
-      },
-      {
-        id: 'demo-remote-collaboration',
-        content: {
-          title: 'Best Practices for Remote Team Collaboration',
-          body: 'Remote work has become the new normal, requiring teams to adapt their collaboration strategies for distributed environments. Effective remote collaboration depends on clear communication protocols, robust project management systems, and the right technology stack. This guide covers essential tools and techniques for maintaining team cohesion, including video conferencing best practices, asynchronous communication strategies, and collaborative document editing workflows. Discover how to build trust, maintain accountability, and foster innovation in virtual team settings.',
-          keywords: ['remote work', 'collaboration', 'team management', 'communication', 'virtual teams'],
-          entities: [],
-          topics: [
-            { name: 'Remote Work', confidence: 0.92, keywords: ['remote', 'distributed'], category: 'work' },
-            { name: 'Team Collaboration', confidence: 0.88, keywords: ['teamwork', 'communication'], category: 'management' }
-          ],
-          language: 'en',
-          contentType: 'guide',
-        },
-        metadata: {
-          category: 'collaboration',
-          tags: ['remote', 'teamwork', 'communication'],
-        }
-      },
-      {
-        id: 'demo-project-management',
-        content: {
-          title: 'Agile Project Management Methodologies Comparison',
-          body: 'Choosing the right project management methodology is crucial for project success. This comprehensive comparison examines popular agile frameworks including Scrum, Kanban, and Lean, analyzing their strengths, weaknesses, and ideal use cases. Learn about sprint planning, backlog management, daily standups, and retrospectives. Understand how to select the most appropriate methodology based on team size, project complexity, and organizational culture. Includes practical implementation tips and common pitfalls to avoid.',
-          keywords: ['agile', 'scrum', 'kanban', 'project management', 'methodology'],
-          entities: [],
-          topics: [
-            { name: 'Project Management', confidence: 0.94, keywords: ['agile', 'scrum'], category: 'management' },
-            { name: 'Methodology', confidence: 0.87, keywords: ['framework', 'process'], category: 'process' }
-          ],
-          language: 'en',
-          contentType: 'comparison',
-        },
-        metadata: {
-          category: 'management',
-          tags: ['agile', 'scrum', 'methodology'],
+      ];
+
+      // Index demo documents
+      for (const doc of demoDocuments) {
+        try {
+          await documentIndexingService.indexDocument(
+            doc.id,
+            doc.content,
+            doc.metadata
+          );
+        } catch (error) {
+          console.warn(`Failed to index document ${doc.id}:`, error);
         }
       }
-    ];
 
-    // Index demo documents
-    for (const doc of demoDocuments) {
-      await documentIndexingService.indexDocument(
-        doc.id,
-        doc.content,
-        doc.metadata
-      );
+      // Refresh stats after indexing
+      setTimeout(() => {
+        loadIndexingStats();
+      }, 1000);
+    } catch (error) {
+      console.error('Failed to initialize demo data:', error);
     }
-
-    // Refresh stats after indexing
-    setTimeout(() => {
-      loadIndexingStats();
-    }, 1000);
   };
 
   const handleResultSelect = (result: SemanticHit) => {

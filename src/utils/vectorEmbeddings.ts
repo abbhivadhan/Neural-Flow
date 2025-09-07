@@ -437,23 +437,41 @@ export class EmbeddingGenerator {
   private mockEmbedding(text: string): number[] {
     const embedding = new Array(this.dimensions);
     
-    // Simple hash-based mock embedding
-    let hash = 0;
-    for (let i = 0; i < text.length; i++) {
-      const char = text.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32-bit integer
-    }
+    // Create more realistic embeddings based on text content
+    const words = text.toLowerCase().split(/\s+/);
+    const wordHashes = words.map(word => this.hashString(word));
     
-    // Generate pseudo-random embedding based on text hash
-    const random = this.seededRandom(hash);
+    // Generate embedding based on word content
     for (let i = 0; i < this.dimensions; i++) {
-      embedding[i] = (random() - 0.5) * 2; // Range: -1 to 1
+      let value = 0;
+      
+      // Combine word influences
+      wordHashes.forEach((hash, wordIndex) => {
+        const random = this.seededRandom(hash + i);
+        const influence = 1 / (wordIndex + 1); // Diminishing influence for later words
+        value += (random() - 0.5) * 2 * influence;
+      });
+      
+      // Add some dimension-specific variation
+      const dimRandom = this.seededRandom(i * 1000 + this.hashString(text));
+      value += (dimRandom() - 0.5) * 0.1;
+      
+      embedding[i] = value;
     }
     
     // Normalize the embedding
     const magnitude = Math.sqrt(embedding.reduce((sum, val) => sum + val * val, 0));
-    return embedding.map(val => val / magnitude);
+    return magnitude > 0 ? embedding.map(val => val / magnitude) : embedding;
+  }
+
+  private hashString(str: string): number {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+    return Math.abs(hash);
   }
 
   private seededRandom(seed: number): () => number {

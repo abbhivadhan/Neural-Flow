@@ -97,6 +97,7 @@ export const TaskColumn: React.FC<TaskColumnProps> = ({
             onClick={() => onAddTask?.(status)}
             className="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-md transition-colors"
             title="Add task"
+            data-tutorial={status === TaskStatus.TODO ? "add-task" : undefined}
           >
             <Plus className="w-4 h-4 text-slate-500 dark:text-slate-400" />
           </button>
@@ -133,6 +134,7 @@ export const TaskColumn: React.FC<TaskColumnProps> = ({
             <button
               onClick={() => onAddTask?.(status)}
               className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+              data-tutorial={status === TaskStatus.TODO ? "add-task" : undefined}
             >
               Add your first task
             </button>

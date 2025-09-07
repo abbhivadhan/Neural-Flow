@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { WorkspaceLayout } from '../components/workspace';
+import { TaskInputModal } from '../components/workspace/TaskInputModal';
 import { simpleTasks, simpleProjects } from '../data/simpleSampleData';
 import { Task, TaskStatus, WorkType, ComplexityLevel, EnvironmentType, CollaborationLevel } from '../types/task';
 import { Project } from '../types/project';
@@ -8,6 +9,8 @@ import { Priority } from '../types/common';
 export default function WorkspacePage() {
   const [tasks, setTasks] = useState<Task[]>(simpleTasks as Task[]);
   const [projects] = useState<Project[]>(simpleProjects as any);
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+  const [taskModalStatus, setTaskModalStatus] = useState<TaskStatus>(TaskStatus.TODO);
 
   const handleTaskMove = (taskId: string, newStatus: TaskStatus) => {
     setTasks(prevTasks => 
@@ -20,12 +23,17 @@ export default function WorkspacePage() {
   };
 
   const handleAddTask = (status: TaskStatus) => {
+    setTaskModalStatus(status);
+    setIsTaskModalOpen(true);
+  };
+
+  const handleCreateTask = (taskData: { title: string; description: string; priority: Priority }) => {
     const newTask: Task = {
       id: `task-${Date.now()}`,
-      title: 'New Task',
-      description: 'Task description',
-      priority: Priority.MEDIUM,
-      status,
+      title: taskData.title,
+      description: taskData.description,
+      priority: taskData.priority,
+      status: taskModalStatus,
       estimatedDuration: 2,
       dependencies: [],
       context: {
@@ -66,15 +74,24 @@ export default function WorkspacePage() {
   };
 
   return (
-    <WorkspaceLayout
-      initialView="dashboard"
-      tasks={tasks}
-      projects={projects}
-      onTaskMove={handleTaskMove}
-      onAddTask={handleAddTask}
-      onEditTask={handleEditTask}
-      onProjectClick={handleProjectClick}
-      onAddProject={handleAddProject}
-    />
+    <>
+      <WorkspaceLayout
+        initialView="dashboard"
+        tasks={tasks}
+        projects={projects}
+        onTaskMove={handleTaskMove}
+        onAddTask={handleAddTask}
+        onEditTask={handleEditTask}
+        onProjectClick={handleProjectClick}
+        onAddProject={handleAddProject}
+      />
+      
+      <TaskInputModal
+        isOpen={isTaskModalOpen}
+        onClose={() => setIsTaskModalOpen(false)}
+        onSubmit={handleCreateTask}
+        status={taskModalStatus}
+      />
+    </>
   );
 }

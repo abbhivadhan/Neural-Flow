@@ -56,6 +56,15 @@ export default {
       },
       animation: {
         'neural-pulse': 'neuralPulse 2s ease-in-out infinite',
+        'shimmer': 'shimmer 2s infinite',
+        'pulse-glow': 'pulseGlow 2s infinite',
+        'float': 'float 3s ease-in-out infinite',
+        'particle-float': 'particleFloat 4s ease-in-out infinite',
+        'fade-in-up': 'fadeInUp 0.6s ease-out',
+        'slide-in-right': 'slideInRight 0.5s ease-out',
+        'scale-in': 'scaleIn 0.3s ease-out',
+        'glow-pulse': 'glowPulse 1.5s ease-in-out infinite',
+        'text-glow': 'textGlow 2s ease-in-out infinite',
       },
       keyframes: {
         neuralPulse: {
@@ -66,6 +75,84 @@ export default {
           '50%': { 
             boxShadow: '0 0 40px rgba(59, 130, 246, 0.8)',
             transform: 'scale(1.02)',
+          },
+        },
+        shimmer: {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(100%)' },
+        },
+        pulseGlow: {
+          '0%, 100%': { 
+            boxShadow: '0 0 5px rgba(59, 130, 246, 0.5)',
+            opacity: '1',
+          },
+          '50%': { 
+            boxShadow: '0 0 20px rgba(59, 130, 246, 0.8)',
+            opacity: '0.8',
+          },
+        },
+        float: {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-10px)' },
+        },
+        particleFloat: {
+          '0%, 100%': { 
+            transform: 'translateY(0px) rotate(0deg)',
+            opacity: '0.7',
+          },
+          '33%': { 
+            transform: 'translateY(-15px) rotate(120deg)',
+            opacity: '1',
+          },
+          '66%': { 
+            transform: 'translateY(-5px) rotate(240deg)',
+            opacity: '0.8',
+          },
+        },
+        fadeInUp: {
+          '0%': {
+            opacity: '0',
+            transform: 'translateY(20px)',
+          },
+          '100%': {
+            opacity: '1',
+            transform: 'translateY(0)',
+          },
+        },
+        slideInRight: {
+          '0%': {
+            opacity: '0',
+            transform: 'translateX(20px)',
+          },
+          '100%': {
+            opacity: '1',
+            transform: 'translateX(0)',
+          },
+        },
+        scaleIn: {
+          '0%': {
+            opacity: '0',
+            transform: 'scale(0.9)',
+          },
+          '100%': {
+            opacity: '1',
+            transform: 'scale(1)',
+          },
+        },
+        glowPulse: {
+          '0%, 100%': {
+            boxShadow: '0 0 5px rgba(139, 92, 246, 0.3)',
+          },
+          '50%': {
+            boxShadow: '0 0 20px rgba(139, 92, 246, 0.6), 0 0 30px rgba(139, 92, 246, 0.4)',
+          },
+        },
+        textGlow: {
+          '0%, 100%': {
+            textShadow: '0 0 5px rgba(255, 255, 255, 0.5), 0 0 10px rgba(255, 255, 255, 0.3)',
+          },
+          '50%': {
+            textShadow: '0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5), 0 0 30px rgba(255, 255, 255, 0.3)',
           },
         },
       },
@@ -148,6 +235,25 @@ export default {
         '.touch-target-lg': {
           'min-height': '48px',
           'min-width': '48px',
+        },
+        // Text shadow utilities
+        '.text-shadow-sm': {
+          'text-shadow': '0 1px 2px rgba(0, 0, 0, 0.1)',
+        },
+        '.text-shadow-md': {
+          'text-shadow': '0 2px 4px rgba(0, 0, 0, 0.2)',
+        },
+        '.text-shadow-lg': {
+          'text-shadow': '0 4px 8px rgba(0, 0, 0, 0.3)',
+        },
+        '.text-shadow-xl': {
+          'text-shadow': '0 8px 16px rgba(0, 0, 0, 0.4)',
+        },
+        '.text-outline': {
+          'text-shadow': '1px 1px 0 rgba(0, 0, 0, 0.3), -1px -1px 0 rgba(0, 0, 0, 0.3), 1px -1px 0 rgba(0, 0, 0, 0.3), -1px 1px 0 rgba(0, 0, 0, 0.3)',
+        },
+        '.text-outline-white': {
+          'text-shadow': '1px 1px 0 rgba(255, 255, 255, 0.8), -1px -1px 0 rgba(255, 255, 255, 0.8), 1px -1px 0 rgba(255, 255, 255, 0.8), -1px 1px 0 rgba(255, 255, 255, 0.8)',
         },
       }
       

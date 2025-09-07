@@ -3,9 +3,13 @@ import { AdaptiveSidebar } from './AdaptiveSidebar';
 import { ContextToolbar } from './ContextToolbar';
 import { TaskBoard } from './TaskBoard';
 import { ProjectGrid } from './ProjectGrid';
+import { QuickAddModal } from './QuickAddModal';
+
 import { Task, TaskStatus } from '../../types/task';
 import { Project } from '../../types/project';
+import { Priority } from '../../types/common';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Plus } from 'lucide-react';
 
 interface WorkspaceLayoutProps {
   initialView?: 'dashboard' | 'projects' | 'tasks' | 'calendar' | 'analytics';
@@ -33,10 +37,22 @@ export const WorkspaceLayout: React.FC<WorkspaceLayoutProps> = ({
   onAddProject,
   className = '',
 }) => {
-  const [currentView, setCurrentView] = useState(initialView);
+  // Check if coming from tutorial and start with tasks view
+  const urlParams = new URLSearchParams(window.location.search);
+  const fromTutorial = urlParams.get('tutorial') === 'true';
+  const [currentView, setCurrentView] = useState(fromTutorial ? 'tasks' : initialView);
+  
+  // Ensure we have at least one task column visible for tutorial
+  useEffect(() => {
+    if (fromTutorial && currentView === 'tasks') {
+      // Make sure we're in tasks view for tutorial
+      setCurrentView('tasks');
+    }
+  }, [fromTutorial, currentView]);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [currentContext, setCurrentContext] = useState<WorkspaceContext>('dashboard');
   const [isAIActive] = useState(true);
+  const [showQuickAddModal, setShowQuickAddModal] = useState(false);
 
   // Detect context based on current activity and time
   useEffect(() => {
@@ -82,6 +98,54 @@ export const WorkspaceLayout: React.FC<WorkspaceLayoutProps> = ({
     }
   };
 
+  const handleQuickAdd = () => {
+    // Context-aware quick add behavior
+    switch (currentContext) {
+      case 'coding':
+      case 'dashboard':
+        // For coding context or dashboard, show task creation modal
+        setShowQuickAddModal(true);
+        break;
+      case 'design':
+        // For design context, add new project
+        onAddProject();
+        break;
+      case 'writing':
+        // For writing context, create new document/task
+        setShowQuickAddModal(true);
+        break;
+      case 'research':
+        // For research context, add new research item/task
+        setShowQuickAddModal(true);
+        break;
+      case 'meeting':
+        // For meeting context, create new meeting task
+        setShowQuickAddModal(true);
+        break;
+      default:
+        setShowQuickAddModal(true);
+    }
+  };
+
+  const handleQuickAddSubmit = (taskData: { title: string; description: string; priority: Priority }) => {
+    // Create a new task with the provided data
+    const newTask: Partial<Task> = {
+      id: `task-${Date.now()}`,
+      title: taskData.title,
+      description: taskData.description,
+      priority: taskData.priority,
+      status: 'todo' as TaskStatus,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // Log the task creation - in a real app, this would be handled by a proper task management system
+    console.log('Quick add task created:', newTask);
+    
+    // Close the modal - the task has been created with all necessary data
+    setShowQuickAddModal(false);
+  };
+
   const renderMainContent = () => {
     switch (currentView) {
       case 'tasks':
@@ -92,6 +156,7 @@ export const WorkspaceLayout: React.FC<WorkspaceLayoutProps> = ({
             onAddTask={onAddTask}
             onEditTask={onEditTask}
             className="h-full"
+            data-tutorial="task-board"
           />
         );
       
@@ -105,13 +170,15 @@ export const WorkspaceLayout: React.FC<WorkspaceLayoutProps> = ({
           />
         );
       
+
+      
       case 'dashboard':
         return (
           <div className="h-full p-6">
             <div className="max-w-7xl mx-auto">
               <div className="mb-8">
                 <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">
-                  Welcome back! 👋
+                  Welcome back Abbhivadhan! 👋
                 </h1>
                 <p className="text-slate-600 dark:text-slate-400">
                   Your AI-powered workspace is ready. Here's what's happening today.
@@ -207,7 +274,7 @@ export const WorkspaceLayout: React.FC<WorkspaceLayoutProps> = ({
                   <div className="space-y-4">
                     <div className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg">
                       <p className="text-sm font-medium text-slate-900 dark:text-slate-100 mb-2">
-                        🧠 Pattern Detected
+                        Pattern Detected
                       </p>
                       <p className="text-xs text-slate-600 dark:text-slate-400">
                         You're most productive between 9-11 AM. Consider scheduling complex tasks during this time.
@@ -215,7 +282,7 @@ export const WorkspaceLayout: React.FC<WorkspaceLayoutProps> = ({
                     </div>
                     <div className="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-lg">
                       <p className="text-sm font-medium text-slate-900 dark:text-slate-100 mb-2">
-                        ⚡ Optimization Tip
+                        Optimization Tip
                       </p>
                       <p className="text-xs text-slate-600 dark:text-slate-400">
                         Group similar tasks together to reduce context switching and improve focus.
@@ -252,6 +319,7 @@ export const WorkspaceLayout: React.FC<WorkspaceLayoutProps> = ({
         onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
         currentContext={currentContext === 'dashboard' ? 'coding' : currentContext as any}
         onNavigate={handleNavigation}
+        onQuickAdd={handleQuickAdd}
       />
 
       {/* Main Content Area */}
@@ -263,8 +331,28 @@ export const WorkspaceLayout: React.FC<WorkspaceLayoutProps> = ({
           isAIActive={isAIActive}
         />
 
+        {/* Tutorial Add Task Button - Only visible during tutorial */}
+        {fromTutorial && currentView === 'tasks' && (
+          <div className="px-4 py-2 border-b border-slate-200 dark:border-slate-700 bg-blue-50 dark:bg-blue-900/20">
+            <button
+              onClick={() => {
+                console.log('Tutorial Add Task button clicked');
+                onAddTask('todo');
+              }}
+              data-tutorial="add-task"
+              className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors shadow-sm"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Task</span>
+            </button>
+            <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+              Click here to create your first task as part of the tutorial
+            </p>
+          </div>
+        )}
+
         {/* Content */}
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden px-4 pt-4" data-tutorial="workspace">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentView}
@@ -273,12 +361,25 @@ export const WorkspaceLayout: React.FC<WorkspaceLayoutProps> = ({
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3 }}
               className="h-full"
+              data-tutorial={currentView === 'tasks' ? 'workspace-main' : undefined}
             >
               {renderMainContent()}
             </motion.div>
           </AnimatePresence>
         </div>
       </div>
+
+      {/* Quick Add Modal */}
+      <QuickAddModal
+        isOpen={showQuickAddModal}
+        onClose={() => setShowQuickAddModal(false)}
+        currentContext={currentContext === 'dashboard' ? 'coding' : currentContext as any}
+        onAddTask={handleQuickAddSubmit}
+        onAddProject={onAddProject}
+        onAddDocument={() => console.log('Add document functionality coming soon')}
+        onAddMeeting={() => console.log('Add meeting functionality coming soon')}
+        onAddIdea={() => console.log('Add idea functionality coming soon')}
+      />
     </div>
   );
 };

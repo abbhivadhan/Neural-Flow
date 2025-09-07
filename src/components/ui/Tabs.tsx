@@ -49,7 +49,7 @@ export function Tabs({ value, onValueChange, children, className = '' }: TabsPro
 
 export function TabsList({ children, className = '', activeTab, onTabChange }: TabsListProps & any) {
   return (
-    <div className={`inline-flex h-10 items-center justify-center rounded-md bg-gray-100 p-1 text-gray-500 ${className}`}>
+    <div className={`inline-flex h-10 items-center justify-center rounded-md bg-gray-100 dark:bg-gray-800 p-1 text-gray-500 dark:text-gray-400 ${className}`}>
       {React.Children.map(children, child => {
         if (React.isValidElement(child)) {
           return React.cloneElement(child, {
@@ -68,10 +68,10 @@ export function TabsTrigger({ value, children, className = '', activeTab, onTabC
   
   return (
     <button
-      className={`inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-white transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ${
+      className={`inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-white dark:ring-offset-gray-950 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ${
         isActive 
-          ? 'bg-white text-gray-950 shadow-sm' 
-          : 'text-gray-500 hover:text-gray-900'
+          ? 'bg-white dark:bg-gray-950 text-gray-950 dark:text-gray-50 shadow-sm' 
+          : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
       } ${className}`}
       onClick={() => onTabChange?.(value)}
     >
@@ -84,7 +84,7 @@ export function TabsContent({ value, children, className = '', activeTab }: Tabs
   if (activeTab !== value) return null;
   
   return (
-    <div className={`mt-2 ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 ${className}`}>
+    <div className={`mt-2 ring-offset-white dark:ring-offset-gray-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400 focus-visible:ring-offset-2 ${className}`}>
       {children}
     </div>
   );

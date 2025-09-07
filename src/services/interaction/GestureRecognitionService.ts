@@ -23,14 +23,24 @@ export class GestureRecognitionService {
   private gestureThrottleMs = 100; // Throttle gestures to avoid spam
 
   constructor() {
-    this.initializeMediaPipe();
+    // Initialize MediaPipe asynchronously to avoid blocking
+    this.initializeMediaPipe().catch(error => {
+      console.warn('MediaPipe initialization failed, gesture recognition will be unavailable:', error);
+    });
   }
 
   private async initializeMediaPipe(): Promise<void> {
     try {
+      console.log('Initializing MediaPipe Hands...');
+      
+      // Check if MediaPipe dependencies are available
+      if (typeof Hands === 'undefined') {
+        throw new Error('MediaPipe Hands not available');
+      }
+      
       this.hands = new Hands({
         locateFile: (file) => {
-          return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+          return `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/${file}`;
         }
       });
 
@@ -43,7 +53,10 @@ export class GestureRecognitionService {
 
       this.hands.onResults(this.handleResults.bind(this));
       this.isInitialized = true;
+      console.log('MediaPipe Hands initialized successfully');
     } catch (error) {
+      console.warn('Failed to initialize MediaPipe:', error);
+      this.isInitialized = false;
       this.onErrorCallback?.(error as Error);
     }
   }
@@ -240,10 +253,15 @@ export class GestureRecognitionService {
     this.canvasElement = canvasElement || null;
 
     try {
+      console.log('Starting camera for gesture recognition...');
       this.camera = new Camera(videoElement, {
         onFrame: async () => {
-          if (this.hands) {
-            await this.hands.send({ image: videoElement });
+          if (this.hands && this.isRecognizing) {
+            try {
+              await this.hands.send({ image: videoElement });
+            } catch (error) {
+              console.error('Error processing frame:', error);
+            }
           }
         },
         width: 640,
@@ -252,8 +270,11 @@ export class GestureRecognitionService {
 
       await this.camera.start();
       this.isRecognizing = true;
+      console.log('Camera started successfully for gesture recognition');
     } catch (error) {
+      console.error('Failed to start camera:', error);
       this.onErrorCallback?.(error as Error);
+      throw error;
     }
   }
 

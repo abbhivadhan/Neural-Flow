@@ -262,10 +262,13 @@ export const ContextToolbar: React.FC<ContextToolbarProps> = ({
   }, [actions]);
 
   return (
-    <div className={`
-      flex items-center justify-between p-4 bg-white dark:bg-slate-900 
-      border-b border-slate-200 dark:border-slate-700 ${className}
-    `}>
+    <div 
+      className={`
+        flex items-center justify-between p-4 bg-white dark:bg-slate-900 
+        border-b border-slate-200 dark:border-slate-700 ${className}
+      `}
+      data-tutorial="context-toolbar"
+    >
       {/* Left Section - Primary Actions */}
       <div className="flex items-center space-x-3">
         {primaryActions.map((action) => {
@@ -323,7 +326,7 @@ export const ContextToolbar: React.FC<ContextToolbarProps> = ({
               key={action.id}
               onClick={() => handleAction(action)}
               className={`
-                p-2 rounded-lg transition-all duration-200
+                relative p-2 rounded-lg transition-all duration-200
                 ${action.aiSuggested 
                   ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 hover:bg-purple-200 dark:hover:bg-purple-900/50' 
                   : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'

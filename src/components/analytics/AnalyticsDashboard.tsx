@@ -70,7 +70,32 @@ export default function AnalyticsDashboard({ userId, className = '' }: Analytics
       // Mock data - in real implementation, these would come from APIs
       const mockTasks: any[] = [];
       const mockUserBehavior: any[] = [];
-      const mockHistoricalMetrics: ProductivityMetrics[] = [];
+      const mockHistoricalMetrics = [
+        {
+          tasksCompleted: 8,
+          tasksCreated: 10,
+          averageCompletionTime: 2.5,
+          focusTime: 6.2,
+          interruptionCount: 12,
+          productivityScore: 0.78,
+          efficiencyRatio: 0.85,
+          burnoutRisk: 0.3,
+          workloadBalance: 0.72,
+          collaborationIndex: 0.65
+        },
+        {
+          tasksCompleted: 7,
+          tasksCreated: 9,
+          averageCompletionTime: 2.8,
+          focusTime: 5.8,
+          interruptionCount: 15,
+          productivityScore: 0.72,
+          efficiencyRatio: 0.82,
+          burnoutRisk: 0.4,
+          workloadBalance: 0.68,
+          collaborationIndex: 0.58
+        }
+      ];
 
       // Load productivity metrics
       const metrics = await productivityService.calculateProductivityMetrics(

@@ -3,7 +3,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Task, TaskStatus } from '../../types/task';
 import { Priority } from '../../types/common';
-import { Clock, User, Tag, Calendar, AlertCircle } from 'lucide-react';
+import { Tag, Calendar, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface TaskCardProps {
@@ -19,14 +19,7 @@ const priorityColors = {
   [Priority.URGENT]: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
 };
 
-const statusColors = {
-  [TaskStatus.TODO]: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200',
-  [TaskStatus.IN_PROGRESS]: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-  [TaskStatus.BLOCKED]: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-  [TaskStatus.REVIEW]: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
-  [TaskStatus.DONE]: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-  [TaskStatus.CANCELLED]: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200',
-};
+
 
 export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit }) => {
   const {
@@ -78,79 +71,42 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit }) => {
         </p>
       )}
 
-      {/* Tags */}
+      {/* Tags - simplified */}
       {task.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1 mb-3">
-          {task.tags.slice(0, 3).map((tag) => (
-            <span
-              key={tag}
-              className="inline-flex items-center px-2 py-1 text-xs bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-full"
-            >
-              <Tag className="w-3 h-3 mr-1" />
-              {tag}
-            </span>
-          ))}
-          {task.tags.length > 3 && (
-            <span className="text-xs text-slate-500 dark:text-slate-400">
-              +{task.tags.length - 3} more
-            </span>
-          )}
+        <div className="flex items-center gap-1 mb-3">
+          <Tag className="w-3 h-3 text-slate-400" />
+          <span className="text-xs text-slate-500 dark:text-slate-400">
+            {task.tags.slice(0, 2).join(', ')}
+            {task.tags.length > 2 && ` +${task.tags.length - 2}`}
+          </span>
         </div>
       )}
 
-      {/* Metadata */}
-      <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-        <div className="flex items-center space-x-3">
-          {/* Priority */}
-          <span className={`px-2 py-1 rounded-full ${priorityColors[task.priority]}`}>
-            {task.priority}
-          </span>
-
-          {/* Status */}
-          <span className={`px-2 py-1 rounded-full ${statusColors[task.status]}`}>
-            {task.status.replace('_', ' ')}
-          </span>
-        </div>
-
-        <div className="flex items-center space-x-2">
-          {/* Due date */}
-          {task.dueDate && (
-            <div className={`flex items-center ${isOverdue ? 'text-red-500' : ''}`}>
-              <Calendar className="w-3 h-3 mr-1" />
-              {format(new Date(task.dueDate), 'MMM dd')}
-              {isOverdue && <AlertCircle className="w-3 h-3 ml-1" />}
-            </div>
-          )}
-
-          {/* Duration */}
-          {task.estimatedDuration && (
-            <div className="flex items-center">
-              <Clock className="w-3 h-3 mr-1" />
-              {task.estimatedDuration}h
-            </div>
-          )}
-
-          {/* Assignee */}
-          {task.assignee && (
-            <div className="flex items-center">
-              <User className="w-3 h-3 mr-1" />
-              <div className="w-5 h-5 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full"></div>
-            </div>
-          )}
-        </div>
+      {/* Essential metadata only */}
+      <div className="flex items-center justify-between">
+        {/* Priority indicator */}
+        <span className={`px-2 py-1 text-xs rounded-full ${priorityColors[task.priority]}`}>
+          {task.priority}
+        </span>
+        
+        {/* Due date - only show if exists and important */}
+        {task.dueDate && (
+          <div className={`flex items-center text-xs ${isOverdue ? 'text-red-500' : 'text-slate-500 dark:text-slate-400'}`}>
+            {isOverdue && <AlertCircle className="w-3 h-3 mr-1" />}
+            {format(new Date(task.dueDate), 'MMM dd')}
+          </div>
+        )}
       </div>
 
-      {/* Progress indicator for subtasks */}
+      {/* Subtasks indicator - simplified */}
       {task.subtasks.length > 0 && (
-        <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700">
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-slate-500 dark:text-slate-400">
-              Subtasks: {task.subtasks.length}
-            </span>
-            <div className="w-16 h-1 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+        <div className="mt-3 pt-2 border-t border-slate-200 dark:border-slate-700">
+          <div className="flex items-center text-xs text-slate-500 dark:text-slate-400">
+            <span>{task.subtasks.length} subtasks</span>
+            <div className="ml-2 flex-1 h-1 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
               <div 
-                className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300"
-                style={{ width: '60%' }} // This would be calculated based on completed subtasks
+                className="h-full bg-blue-500 transition-all duration-300"
+                style={{ width: '60%' }}
               />
             </div>
           </div>

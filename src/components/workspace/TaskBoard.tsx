@@ -21,6 +21,7 @@ interface TaskBoardProps {
   onAddTask?: (status: TaskStatus) => void;
   onEditTask?: (task: Task) => void;
   className?: string;
+  'data-tutorial'?: string;
 }
 
 const columnOrder: TaskStatus[] = [TaskStatus.TODO, TaskStatus.IN_PROGRESS, TaskStatus.REVIEW, TaskStatus.DONE];
@@ -31,6 +32,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
   onAddTask,
   onEditTask,
   className = '',
+  'data-tutorial': dataTutorial,
 }) => {
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   
@@ -157,7 +159,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
   };
 
   return (
-    <div className={`h-full ${className}`}>
+    <div className={`h-full ${className}`} data-tutorial={dataTutorial}>
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}

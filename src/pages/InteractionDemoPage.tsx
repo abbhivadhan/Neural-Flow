@@ -1,7 +1,15 @@
 import React, { useState, useCallback } from 'react';
-import { MultiModalInterface } from '../components/interaction/MultiModalInterface';
-import { CommandIntent } from '../types/interaction';
 import { Brain, Zap, MessageSquare, Hand, Mic, Eye } from 'lucide-react';
+import { MultiModalInterface } from '../components/interaction/MultiModalInterface';
+import { SimpleMultiModalTest } from '../components/interaction/SimpleMultiModalTest';
+import { MinimalTest } from '../components/interaction/MinimalTest';
+// Local type definition to avoid import issues
+interface CommandIntent {
+  action: string;
+  entity?: string;
+  parameters?: Record<string, any>;
+  confidence: number;
+}
 
 interface CommandLog {
   id: string;
@@ -166,16 +174,74 @@ export const InteractionDemoPage: React.FC = () => {
         </div>
 
         {/* Main Demo Interface */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Multi-Modal Interface */}
-          <div>
-            <MultiModalInterface 
-              onCommand={handleCommand}
-              className="h-fit"
-            />
+          <div className="lg:col-span-2">
+            <div className="space-y-6">
+              {/* Minimal Test */}
+              <MinimalTest />
+              
+              {/* Simple Test Component */}
+              <SimpleMultiModalTest 
+                onCommand={handleCommand}
+                className="w-full"
+              />
+              
+              {/* Original Multi-Modal Interface */}
+              <MultiModalInterface 
+                onCommand={handleCommand}
+                className="w-full"
+              />
+            </div>
           </div>
+          
+          {/* Demo Buttons for Testing */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              Quick Test Commands
+            </h3>
+            <div className="space-y-4">
+              <button
+                onClick={() => handleCommand({ action: 'create_task', entity: 'Demo Task', confidence: 0.95 })}
+                className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                Create Task (Demo)
+              </button>
+              <button
+                onClick={() => handleCommand({ action: 'search', entity: 'documents', confidence: 0.88 })}
+                className="w-full px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+              >
+                Search Documents (Demo)
+              </button>
+              <button
+                onClick={() => handleCommand({ action: 'open_item', entity: 'project files', confidence: 0.92 })}
+                className="w-full px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+              >
+                Open Project (Demo)
+              </button>
+              <button
+                onClick={() => handleCommand({ action: 'approve', confidence: 0.90 })}
+                className="w-full px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+              >
+                👍 Approve (Gesture Demo)
+              </button>
+              <button
+                onClick={() => handleCommand({ action: 'help', confidence: 0.95 })}
+                className="w-full px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+              >
+                Help (Voice Demo)
+              </button>
+            </div>
+            <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <p className="text-sm text-blue-800 dark:text-blue-200">
+                Use the actual multi-modal interface above, or these buttons for quick testing.
+              </p>
+            </div>
+          </div>
+        </div>
 
-          {/* Command Log and Demo Output */}
+        {/* Command Log and Demo Output */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
           <div className="space-y-6">
             {/* Command Log */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">

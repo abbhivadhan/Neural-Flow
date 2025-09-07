@@ -30,5 +30,7 @@ describe('OAuth2Service', () => {
   describe('generateAuthUrl', () => {
     it('should generate correct authorization URL', () => {
       const authUrl = oauth2Service.generateAuthUrl('test-provider');
-      
-     
+      expect(authUrl).toContain('test-provider');
+    });
+  });
+});

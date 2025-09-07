@@ -8,7 +8,8 @@ import {
   InsightSeverity,
   Recommendation
 } from '../../types/analytics';
-import { Task, TaskStatus, TaskPriority } from '../../types/task';
+import { Task, TaskStatus } from '../../types/task';
+import { Priority } from '../../types/common';
 import { User } from '../../types/user';
 import { TimeRange } from '../../types/common';
 
@@ -146,6 +147,18 @@ export class ProductivityMetricsService {
     timeRange: TimeRange,
     historicalData: ProductivityMetrics[]
   ): Promise<BurnoutIndicators> {
+    // Handle empty historical data
+    if (historicalData.length === 0) {
+      return {
+        workingHoursIncrease: 0,
+        taskCompletionDecrease: 0,
+        responseTimeIncrease: 0,
+        collaborationDecrease: 0,
+        overallRisk: 0,
+        riskLevel: 'low'
+      };
+    }
+
     const currentMetrics = historicalData[historicalData.length - 1];
     const previousMetrics = historicalData[historicalData.length - 2] || currentMetrics;
 
@@ -809,14 +822,14 @@ export class ProductivityMetricsService {
     if (tasks.length === 0) return 0;
     
     const weights = {
-      [TaskPriority.CRITICAL]: 4,
-      [TaskPriority.HIGH]: 3,
-      [TaskPriority.MEDIUM]: 2,
-      [TaskPriority.LOW]: 1
+      [Priority.URGENT]: 4,
+      [Priority.HIGH]: 3,
+      [Priority.MEDIUM]: 2,
+      [Priority.LOW]: 1
     };
     
     const totalWeight = tasks.reduce((sum, task) => sum + weights[task.priority], 0);
-    const maxPossibleWeight = tasks.length * weights[TaskPriority.CRITICAL];
+    const maxPossibleWeight = tasks.length * weights[Priority.URGENT];
     
     return totalWeight / maxPossibleWeight;
   }
@@ -830,7 +843,7 @@ export class ProductivityMetricsService {
   }
 
   private calculatePriorityDistribution(tasks: Task[]): number {
-    const priorities = Object.values(TaskPriority);
+    const priorities = Object.values(Priority);
     const distribution = priorities.map(priority => 
       tasks.filter(task => task.priority === priority).length
     );

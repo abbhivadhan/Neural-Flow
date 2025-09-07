@@ -131,3 +131,41 @@ export interface ProductivityInsights {
   recommendations: ProductivityRecommendation[];
   timestamp: Date;
 }
+
+// Advanced AI Model Types
+export interface MLModelConfig {
+  modelType: 'behavioral' | 'task_prediction' | 'priority_optimization' | 'llama' | 'ensemble';
+  hyperparameters: Record<string, any>;
+  trainingData?: TrainingDataset;
+}
+
+export interface TrainingDataset {
+  features: number[][];
+  labels: number[];
+  metadata: {
+    size: number;
+    features: string[];
+    createdAt: Date;
+  };
+}
+
+export class ModelLoadingError extends Error {
+  constructor(message: string, public cause?: Error) {
+    super(message);
+    this.name = 'ModelLoadingError';
+  }
+}
+
+export class ModelInferenceError extends Error {
+  constructor(message: string, public cause?: Error) {
+    super(message);
+    this.name = 'ModelInferenceError';
+  }
+}
+
+export class ModelQuantizationError extends Error {
+  constructor(message: string, public cause?: Error) {
+    super(message);
+    this.name = 'ModelQuantizationError';
+  }
+}

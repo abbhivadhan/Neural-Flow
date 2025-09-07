@@ -72,22 +72,26 @@ export const ProjectGrid: React.FC<ProjectGridProps> = ({
           {/* View Mode Toggle */}
           <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
             <button
+              type="button"
               onClick={() => setViewMode('grid')}
               className={`p-2 rounded-md transition-colors ${
                 viewMode === 'grid'
                   ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm'
                   : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
               }`}
+              aria-label="Grid view"
             >
               <Grid className="w-4 h-4" />
             </button>
             <button
+              type="button"
               onClick={() => setViewMode('list')}
               className={`p-2 rounded-md transition-colors ${
                 viewMode === 'list'
                   ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm'
                   : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
               }`}
+              aria-label="List view"
             >
               <List className="w-4 h-4" />
             </button>
@@ -136,6 +140,8 @@ export const ProjectGrid: React.FC<ProjectGridProps> = ({
           </select>
         </div>
       </div>
+
+
 
       {/* Projects Container */}
       <div className="flex-1 overflow-y-auto">

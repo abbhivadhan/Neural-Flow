@@ -17,18 +17,25 @@ export class VoiceCommandService {
       return;
     }
 
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    this.recognition = new SpeechRecognition();
-    
-    this.recognition.continuous = true;
-    this.recognition.interimResults = true;
-    this.recognition.lang = this.currentLanguage;
-    this.recognition.maxAlternatives = 3;
+    try {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      this.recognition = new SpeechRecognition();
+      
+      this.recognition.continuous = true;
+      this.recognition.interimResults = true;
+      this.recognition.lang = this.currentLanguage;
+      this.recognition.maxAlternatives = 3;
 
-    this.recognition.onresult = this.handleSpeechResult.bind(this);
-    this.recognition.onerror = this.handleSpeechError.bind(this);
-    this.recognition.onend = this.handleSpeechEnd.bind(this);
-    this.recognition.onstart = this.handleSpeechStart.bind(this);
+      this.recognition.onresult = this.handleSpeechResult.bind(this);
+      this.recognition.onerror = this.handleSpeechError.bind(this);
+      this.recognition.onend = this.handleSpeechEnd.bind(this);
+      this.recognition.onstart = this.handleSpeechStart.bind(this);
+      
+      console.log('Speech recognition initialized successfully');
+    } catch (error) {
+      console.error('Failed to initialize speech recognition:', error);
+      this.recognition = null;
+    }
   }
 
   private handleSpeechResult(event: any): void {
